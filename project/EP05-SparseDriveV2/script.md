@@ -1,50 +1,60 @@
 >>> 开场 #B01
 @enter: fade-up
 @exit: fade
-@visual: animation
+@visual: image
 
 --- visual ---
-全屏深色背景 (#0d1117)。画面垂直居中布局，内容占画布 85% 宽度：
-[0s] 顶部标签 "CARLA × SparseDriveV2 仿真教程"，字号 28px，颜色 #8b949e。
-[0.3s] 主标题 "EP05: SparseDriveV2 架构解析" 淡入，白色 (#e6edf3)，粗体，字号 84px，居中。
-[0.8s] accent 色横线从中心向两侧扫出。
-[1.2s] 副标题 "Scoring is All You Need"，字号 40px，颜色 #58a6ff，等宽字体。
-[1.8s] 画面左下角回忆锚点：上一集结尾的"生成 vs 打分"对比框（缩小版），标注 "上一集留下的问题：怎么让候选池足够密又可计算？→ 本集答案"
+一张 16:9 横构图的扁平化教程封面图。深色背景 #0d1117。
+
+主体居中布局：
+- 顶部小字标签 "CARLA × SparseDriveV2 仿真教程"，灰色 #8b949e。
+- 主标题 "EP05: SparseDriveV2 架构解析"，白色 #e6edf3 粗体大字号。
+- 主标题下方亮蓝色 #58a6ff 短横线。
+- 副标题 "Scoring is All You Need"，亮蓝色 #58a6ff 中等字号、等宽字体。
+
+画面左下角是一个回忆锚点：一个微缩版的"生成 vs 打分"双卡片图（继承 EP04 #B08 的左右对照），整体缩小到画布宽 22%，旁边一行小字 "上一集留下的问题：怎么让候选池足够密又可计算？→ 本集答案"，灰色 #8b949e。
+
+整体风格极简、留白克制、文字清晰。
 
 --- narration ---
-欢迎来到第五集，全系列技术含量最高的一集
-上一集结尾我们留了一个问题
-打分范式的候选池需要足够密，但 26 万条轨迹怎么高效评分？
-这集我们深入拆解 SparseDriveV2 的每一个模块
-看看它是怎么做到的
+欢迎来到第五集
+全系列技术含量最高的一集
+上一集结尾留了一个问题
+打分范式需要足够密的候选池
+但 26 万条轨迹怎么高效评分
+这一集深入拆解 SparseDriveV2
+看它是怎么做到的
 
 
 >>> 整体架构概览 #B02
 @enter: fade
 @exit: fade
-@visual: animation
+@visual: image
 
 --- visual ---
-深色背景 (#0d1117)，内容区域占画布 94% 宽度。
-[0s] 顶部居中标题 "整体架构"，字号 56px，粗体，白色，距顶 60px。
+一张 16:9 横构图的整体架构流程图，扁平化技术风格。深色背景 #0d1117。
 
-[0.5s] 画面中央出现从左到右的流程图，总宽占画布 92%：
+顶部居中标题 "整体架构"，白色 #e6edf3 粗体大字。
 
-模块 1 "6× Surround Cameras"：2×3 排列的小矩形，标注 "Input"
-→ 模块 2 "Image Encoder"（宽 150px，圆角 12px，背景 #161b22，边框 #a371f7，内部 "ResNet-34 + FPN" 字号 20px）
-→ 模块 3 "Symmetric Sparse Perception"（宽 260px，圆角 12px，背景 #161b22，边框 #58a6ff，内部分两行："Detection & Tracking" / "Online Mapping" 字号 20px）
-→ 模块 4 "Scoring-Based Planner"（宽 260px，圆角 12px，背景 #161b22，边框 #3fb950，内部 "Factorized Vocabulary" / "Coarse-to-Fine Scoring" 字号 20px）
-→ 模块 5 "Planning Trajectory"（宽 160px，背景 #3fb950，字号 20px，颜色 #0d1117）
+画面中央从左到右是一条水平流程，总宽占画布 92%，五个模块通过细横线 + 右指箭头连接：
 
-各模块依次淡入，间隔 0.4s。
+1. "6× Surround Cameras"：2×3 排列的小矩形（每个不同色边框），下方标签 "Input"。
+2. "Image Encoder"：圆角 12 px、深色背景 #161b22、2 px 紫色 #a371f7 边框，内部 "ResNet-34 + FPN" 中等字号。
+3. "Symmetric Sparse Perception"：同样卡片样式、2 px 亮蓝色 #58a6ff 边框；内部上下两行 "Detection & Tracking" / "Online Mapping"。
+4. "Scoring-Based Planner"：2 px 绿色 #3fb950 边框；内部 "Factorized Vocabulary" / "Coarse-to-Fine Scoring"。
+5. "Planning Trajectory"：实心绿色 #3fb950 圆角矩形、深色 #0d1117 粗体文字。
 
-[4s] 流程图下方出现虚线箭头从 Output 回到 Image Encoder，标注 "端到端梯度流 (End-to-End Gradient Flow)" 字号 20px，颜色 #d29922。
+最下方一条灰色 #d29922 虚线箭头，从最右 "Trajectory" 输出回到最左 "Image Encoder"，箭头中央标注 "端到端梯度流 (End-to-End Gradient Flow)"。
+
+整体风格干净、对称、每个模块标签清晰可读。
 
 --- narration ---
 SparseDriveV2 的整体架构分为四个模块
-6 个环视相机图像 → Image Encoder 提取特征
-→ Symmetric Sparse Perception 做稀疏检测、跟踪和建图
-→ Scoring-Based Planner 对候选轨迹打分
+6 个环视相机图像
+进入 Image Encoder 提取特征
+再进入 Symmetric Sparse Perception
+做稀疏检测、跟踪和建图
+最后 Scoring-Based Planner 对候选轨迹打分
 整个链路端到端可微
 
 
@@ -54,270 +64,343 @@ SparseDriveV2 的整体架构分为四个模块
 @visual: video(./assets/CAM_FRONT.mp4)
 
 --- visual ---
-SparseDriveV2 的三路前向相机输入之一：CAM_FRONT。这是 CARLA 仿真中 Ego 车前方视角的原始 RGB 画面。模型在每个 tick 接收 CAM_FRONT、CAM_FRONT_LEFT、CAM_FRONT_RIGHT 三路图像，内部 resize 到 1920×1080 后送入 ResNet-34 backbone。
+（本块使用本地视频 ./assets/CAM_FRONT.mp4，无需生成图片）
+
+SparseDriveV2 的三路前向相机输入之一：CAM_FRONT。
+这是 CARLA 仿真中 Ego 车前方视角的原始 RGB 画面。
+模型每个 tick 接收 CAM_FRONT、CAM_FRONT_LEFT、CAM_FRONT_RIGHT 三路图像，
+内部 resize 到 1920×1080 后送入 ResNet-34 backbone。
 
 --- narration ---
-先直观感受一下 SparseDriveV2 看到的画面
+先看 SparseDriveV2 看到的画面
 这是前视相机 CAM_FRONT 的原始输出
-加上左前和右前，三路前向相机是模型规划的依据
-后向三路相机在 SparseDriveV2 中用于建图辅助
+加上左前和右前
+三路前向相机是模型规划的依据
+后向三路用于建图辅助
 但规划主要依赖前方视野
-这些画面每秒更新 10 次，每次都要在 50ms 内完成
-从像素到轨迹的完整推理
 
 
 >>> Image Encoder #B04
 @enter: fade-up
 @exit: fade
-@visual: animation
+@visual: image
 
 --- visual ---
-深色背景 (#0d1117)，内容区域占画布 88% 宽度。
-[0s] 顶部居中标题 "Image Encoder"，字号 56px，粗体，白色，距顶 80px。
+一张 16:9 横构图的特征编码器示意图，扁平化技术风格。深色背景 #0d1117。
 
-[0.5s] 画面中央出现编码器示意图，总宽占画布 78%：
+顶部居中标题 "Image Encoder"，白色 #e6edf3 粗体大字。
 
-左侧：6 个相机图像（2×3 排列的小矩形，标注 "6×H×W×3"）
-→ 梯形 Backbone 示意（左高右矮，表示特征逐层缩小），内部 "ResNet-34"，4 层依次标注 1/4→1/8→1/16→1/32 分辨率
-→ FPN 金字塔 → 输出多尺度特征（S 个尺度×N 个视角）
+画面中央从左到右是一条编码管线，总宽占画布 78%：
 
-[3s] 底部出现精简参数条（横排 3 个标签，背景 #161b22，圆角 8px，字号 20px）：
-  "Backbone: ResNet-34 · 21.8M 参数"  
-  "总参数量 ~50M"
-  "比 UniAD 的 ResNet-101 轻量 3×"
+左侧 6 个相机输入：2×3 排列的小矩形（每个不同色边框），下方标签 "6×H×W×3"。
+
+→ 中段一个梯形示意（左大右小），表示 ResNet-34 backbone 的特征逐层缩小。梯形内部水平 4 段，每段标注下采样比例：
+1/4 → 1/8 → 1/16 → 1/32
+
+→ 右段一个 FPN 金字塔示意（叠加的几个矩形层），下方标签 "FPN 多尺度融合"。
+
+→ 最右输出 "S 个尺度 × N 个视角" 多尺度特征图（一摞带不同尺寸边框的小矩形）。
+
+画面底部居中一行三栏胶囊形信息条，深色背景 #161b22 圆角 8 px：
+"Backbone: ResNet-34 · 21.8M 参数" ｜ "总参数量 ~50M" ｜ "比 UniAD 的 ResNet-101 轻量 3×"
+（每栏间用细灰竖线分隔，文字白色 #e6edf3）
+
+整体风格干净、文字按字面准确渲染。
 
 --- narration ---
-Image Encoder 是标准的 Backbone + FPN 结构
-SparseDriveV2 使用 ResNet-34，只有 2180 万参数
+Image Encoder 是标准 Backbone + FPN
+SparseDriveV2 用 ResNet-34
+只有 2180 万参数
 比 UniAD 的 ResNet-101 轻量三倍
-6 个相机各自提特征，FPN 融合多尺度
+6 个相机各自提特征
+FPN 融合多尺度
 输出多尺度特征图供感知模块使用
-整个模型参数量约 5000 万，非常轻量
+整个模型约 5000 万参数
+非常轻量
 
 
 >>> Deformable Aggregation：核心采样算子 #B05
 @enter: fade
 @exit: fade
-@visual: animation
+@visual: image
 
 --- visual ---
-深色背景 (#0d1117)，内容区域占画布 92% 宽度。
-[0s] 顶部居中标题 "Deformable Aggregation"，字号 56px，粗体，白色，距顶 55px。副标题 "感知模块的核心算子 — 每个 query 如何从图像中提取信息" 字号 24px，颜色 #58a6ff。
+一张 16:9 横构图的核心算子分步示意图，扁平化 2.5D 等距风格（伪 3D，不追求真 3D 渲染）。深色背景 #0d1117。
 
-[0.5s] 画面中央呈现本集最重要的动画之一，占画布 85%，高度占 60%：
+顶部居中标题 "Deformable Aggregation"，白色 #e6edf3 粗体大字；副标题 "每个 query 如何从图像中提取信息"，亮蓝色 #58a6ff。
 
-左侧是 3D 空间场景（宽 55%）：一个蓝色 3D BBox（检测 query 的 anchor）悬浮在 3D 空间中，Ego 车在下方（简化图标）。
+画面分左右两部分，总宽占画布 90%。
 
-[1s] anchor 周围生成 8 个绿色小球（关键采样点），均匀散布在 anchor 前后左右。这些球同时亮起（带发光效果），标注 "Step 1: 生成 K 个 3D Keypoints" 字号 22px。
+左半（占宽 55%）是 2.5D 等距 3D 空间示意：
+- 底部一辆简约 Ego 车线条图标（俯视小图）。
+- 上方悬浮一个蓝色 #58a6ff 半透明 3D 包围盒（标签 "anchor"）。
+- 包围盒周围散布 8 个绿色 #3fb950 小球（发光，标签 "Keypoints"）。
+- 从每个绿色小球出发，有一条亮蓝色 #58a6ff 细虚线箭头投射到右侧。
+- 其中 1-2 条虚线箭头在中途中断，下方标注小字 "视野外"，红色 #f85149。
 
-[2s] 8 条投影线（#58a6ff，2px，虚线）从每个绿色小球出发，射向右侧排列的 6 个相机平面（2×3 排列的矩形，尺寸不等，代表不同视角）。并不是每条线都能到达所有相机 —— 有些点在某些相机视野之外（线中断，标注"视野外"）。
+右半（占宽 40%）是 6 个相机图像平面（2×3 排列，每个不同色边框，模拟六相机方向）。虚线箭头落在相机平面对应位置，每个落点是一个小色块（采样像素）。从每个落点出发有一条小流线（彩色）汇聚到画面顶部一根粗"特征流"管道，最终注入左侧上方的 Feature 条。
 
-[3s] 命中相机的投影点在相机平面上形成采样像素位置。从这些位置提取特征向量（小色块向量，流向绿色小球），标注 "Step 2: 投影到各相机 → 采样局部特征"。
+画面顶部中央一个突出的 Query 视觉条（宽约 320 px、横向分两半）：
+- 左半亮蓝色 "Feature F"
+- 右半绿色 "Anchor B"
+（Feature 部分带柔和辉光，表示刚被更新）
 
-[3.5s] 所有采样到的特征汇聚成一条流（accent 色，逐渐变粗），流入 query 的 Feature 部分。Feature 部分闪烁，标注 "Step 3: 加权聚合 → 更新 Feature"。
+画面底部三行步骤说明（白色 #e6edf3 中等字号粗体），每行左侧一个圆形序号：
+① 生成 K 个 3D Keypoints
+② 投影到各相机 → 采样局部特征
+③ 加权聚合 → 更新 Feature
 
-[4.5s] 底部标注 "自定义 CUDA 算子实现 · 每个 query 独立并行采样"，字号 20px，颜色 #3fb950。
+最底一行小字（绿色 #3fb950）：
+"自定义 CUDA 算子实现 · 每个 query 独立并行采样"
+
+整体风格干净、信息密度合适、2.5D 等距构图清晰。
 
 --- narration ---
-Deformable Aggregation 是整个感知模块的核心
+**Deformable Aggregation** 是整个感知模块的核心
 它分三步工作
-第一步，每个检测 query 在它的 3D Anchor 周围生成一组关键点
-第二步，把这些 3D 关键点投影到各个相机的 2D 图像平面
-只有投影落在相机视野内的才有效
-第三步，在投影位置采样局部特征，加权聚合回 query
-这样每个 query 就能从 6 个视角中精准提取自己的相关信息
-整套操作用自定义 CUDA 算子实现，高度并行
+第一步
+每个检测 query 在 3D Anchor 周围生成关键点
+第二步
+把这些 3D 关键点投影到各相机的 2D 图像平面
+只有投影落在视野内的才有效
+第三步
+在投影位置采样局部特征
+加权聚合回 query
+这样每个 query
+都能从 6 个视角中精准提取自己需要的信息
+整套操作用自定义 CUDA 算子实现
+高度并行
 
 
 >>> 对称稀疏感知：Detection & Tracking #B06
 @enter: fade
 @exit: fade
-@visual: animation
+@visual: image
 
 --- visual ---
-深色背景 (#0d1117)，内容区域占画布 90% 宽度。
-[0s] 顶部居中标题 "Sparse Detection & Tracking"，字号 52px，粗体，白色，距顶 60px。副标题 "Nd 个 Instance Query → 6 层 Decoder → 3D BBox + ID" 字号 24px，颜色 #58a6ff。
+一张 16:9 横构图的检测流水线示意图，扁平化技术风格。深色背景 #0d1117。
 
-[0.5s] 画面中央出现检测流水线，总宽占画布 85%：
+顶部居中标题 "Sparse Detection & Tracking"，白色 #e6edf3 粗体大字；副标题 "Nd 个 Instance Query → 6 层 Decoder → 3D BBox + ID"，亮蓝色 #58a6ff。
 
-左侧：Nd 个 query 竖排（5 条，每条 220×20px，左半 Feature 蓝色，右半 Anchor 绿色），标注 "可学习的 Instance Queries"
+画面中央从左到右是一条流水线，总宽占画布 88%：
 
-→ 中间 6 层 Decoder 堆叠（矩形，宽 280px，高 240px，背景 #161b22，边框 #58a6ff）：
-  第 1 层（上方，浅灰 #8b949e 边框）"Non-Temporal" 字号 18px
-  ——虚线分隔——
-  第 2-6 层 "Temporal" 字号 18px
-  每层标注 "Deformable Agg → FFN → Refine" 字号 16px
-  层间有小箭头连接，表示 query 逐层精炼
+左侧 "可学习的 Instance Queries"：竖向排列 5 条 query 横条（每条宽约 220 px、高 22 px），左半亮蓝色 #58a6ff、右半绿色 #3fb950，标签 "Feature | Anchor"。
 
-→ 右侧输出区：
-  上方 "3D BBox + Class + Velocity" 字号 22px，颜色 #3fb950
-  下方 "Persistent Tracking ID" 字号 20px，颜色 #8b949e
-  标注 "置信度 > 0.2 → 自动分配持久 ID"，字号 18px
+→ 中段一个大方形 Decoder 堆叠（圆角 12 px、深色背景 #161b22、2 px 亮蓝色 #58a6ff 边框），内部水平虚线分为两块：
+- 第 1 层（顶部，浅灰 #8b949e 标签）"Non-Temporal"
+- 第 2–6 层（下方，5 层堆叠）"Temporal"
+- 每层一行小字 "Deformable Agg → FFN → Refine"
+- 层间有细向下小箭头连接
 
-[4s] 底部 Anchor 维度说明条："Anchor Bd = {x, y, z, ln w, ln h, ln l, sin θ, cos θ, vx, vy, vz} — 11维"，字号 22px，等宽字体，颜色 #e6edf3。
+→ 右侧输出两个标签卡：
+- 上方绿色 #3fb950 实心标签 "3D BBox + Class + Velocity"
+- 下方灰色背景 #161b22 标签 "Persistent Tracking ID"
+- 下方一行小字 "置信度 > 0.2 → 自动分配持久 ID"
+
+画面底部一行 anchor 维度说明（深色背景 #161b22 圆角 8 px、内边距、等宽字体）：
+"Anchor Bd = {x, y, z, ln w, ln h, ln l, sin θ, cos θ, vx, vy, vz} — 11 维"
+
+整体风格干净、文字按字面准确渲染。
 
 --- narration ---
 检测模块维护 Nd 个 Instance Query
-每个 query 的 anchor 是一个 11 维向量
-编码了位置、尺寸、朝向和速度
+每个 query 的 anchor 是 11 维向量
+编码位置、尺寸、朝向和速度
 经过 6 层 Decoder 逐步精炼
-第一层无时序，后五层引入历史帧信息
+第一层无时序
+后五层引入历史帧信息
 每层核心操作就是刚才讲的 Deformable Aggregation
-跟踪非常简洁 —— 置信度超阈值的检测自动获得持久 ID
+跟踪非常简洁
+置信度超阈值的检测自动获得持久 ID
 不需要匈牙利匹配等复杂后处理
 
 
 >>> 对称稀疏感知：Online Mapping #B07
 @enter: fade
 @exit: fade
-@visual: animation
+@visual: image
 
 --- visual ---
-深色背景 (#0d1117)，内容区域占画布 88% 宽度。
-[0s] 顶部居中标题 "Sparse Online Mapping"，字号 52px，粗体，白色，距顶 70px。
+一张 16:9 横构图的对称对比图，扁平化技术风格。深色背景 #0d1117。
 
-[0.5s] 画面中央出现对称对比图，总宽占画布 85%：
+顶部居中标题 "Sparse Online Mapping"，白色 #e6edf3 粗体大字。
 
-左半 "Detection"，透明度 50%（表示回顾）："Nd Query · BBox Anchor · 6 Decoder Layers" 字号 20px
-右半 "Mapping"（全亮）："Nm=100 Query · Polyline Anchor (20 点) · 6 Decoder Layers" 字号 20px
+画面分上下两部分。
 
-中间竖线分隔，上方 "完全对称的架构" 字号 26px，颜色 #f0883e。
+上半部（占画布高 50%）是对称双栏对比：
+- 左半 "Detection"（透明度降至 50%，表示回顾）：
+  - 一个简化卡片 "Nd Query · BBox Anchor · 6 Decoder Layers"
+- 右半 "Mapping"（全亮）：
+  - 一个完整卡片 "Nm = 100 Query · Polyline Anchor (20 点) · 6 Decoder Layers"
 
-[2s] 下方 50px 出现建图结果俯视示意（宽 60%，高 180px，背景 #0d1117，边框 1px #30363d）：
-  三种折线在道路场景中展示：
-  蓝色 "Lane Divider" (#58a6ff)
-  绿色 "Road Boundary" (#3fb950)
-  黄色 "Pedestrian Crossing" (#d29922)
+中间用一条灰色 #30363d 竖线分隔，上方一行橙色 #f0883e 粗体中字 "完全对称的架构"。
 
-[4s] 底部标注 "一套 Decoder 架构，两种实体类型。对称设计 = 代码复用 + 概念统一"，字号 22px，颜色 #8b949e。
+下半部（占画布高 40%）是建图结果俯视示意：
+- 一段简化道路俯视图（深灰路面）
+- 上层叠加三种折线元素：
+  - 蓝色 #58a6ff 折线 "Lane Divider"
+  - 绿色 #3fb950 折线 "Road Boundary"
+  - 金色 #d29922 折线 "Pedestrian Crossing"
+- 每种折线右侧带一个小图例（颜色 + 标签）
+
+画面底部居中一行灰色 #8b949e 中等字号文字：
+"一套 Decoder，两种实体类型 — 对称设计 = 代码复用 + 概念统一"
+
+整体风格干净、对称、文字清晰。
 
 --- narration ---
-建图模块和检测模块是完全对称的
-同样的 6 层 Decoder、同样的 Deformable Aggregation
+建图模块和检测模块完全对称
+同样的 6 层 Decoder
+同样的 Deformable Aggregation
 区别只在 query 定义
-检测用 11 维 BBox anchor，建图用 20 点 Polyline anchor
+检测用 11 维 BBox anchor
+建图用 20 点 Polyline anchor
 100 个 Map Query 对应车道线、道路边界和人行横道
-一套架构处理两种实体，这个设计非常优雅
+一套架构处理两种实体
+设计非常优雅
 
 
 >>> Factorized Vocabulary：262K 候选的由来 #B08
 @enter: fade
 @exit: fade
-@visual: animation
+@visual: image
 
 --- visual ---
-深色背景 (#0d1117)，内容区域占画布 94% 宽度。
-[0s] 顶部居中标题 "Factorized Vocabulary"，字号 56px，粗体，白色，距顶 55px。副标题 "轨迹 = 路径 × 速度，独立分解让规模变得可计算" 字号 26px，颜色 #3fb950。
+一张 16:9 横构图的二维矩阵核心图，扁平化技术风格。深色背景 #0d1117。
 
-[0.5s] 这是本集最重要的视觉动画。画面中央出现二维矩阵示意，总宽占画布 88%：
+顶部居中标题 "Factorized Vocabulary"，白色 #e6edf3 粗体大字；副标题 "轨迹 = 路径 × 速度，独立分解让规模变得可计算"，绿色 #3fb950 中等字号。
 
-上方单独标注 "传统方案: ~8K 候选" 字号 22px，颜色 #8b949e。一个小矩形代表 8K 候选池。
+画面上方一行参照对比：
+"传统方案：~8K 候选"（灰色 #8b949e 小字 + 一个小灰色方块代表 8K 候选池），位于画布上方约 15% 高度处居中。
 
-中间向下箭头，标注 "SparseDriveV2:"，字号 22px，颜色 #58a6ff。
+中部主体是一个大的二维矩阵框架（占画布宽 70%、高 50%），背景 #0d1117、1 px 灰色 #30363d 边框、坐标轴清晰。
 
-下方核心区域：
+坐标轴标签：
+- 横轴 "1024 Geometric Paths（空间采样 @1 m 间隔）"，亮蓝色 #58a6ff。
+- 纵轴 "256 Velocity Profiles（时间采样 @0.5 s 间隔）"，绿色 #3fb950。
 
-一个大的二维矩阵框架（宽 700px，高 380px，背景 #0d1117，边框 1px #30363d），标注坐标系：
-  横轴 "1024 Geometric Paths (空间采样 @1m 间隔)" 字号 20px，颜色 #58a6ff
-  纵轴 "256 Velocity Profiles (时间采样 @0.5s 间隔)" 字号 20px，颜色 #3fb950
+横轴最左侧画几条代表性 Path 曲线（5–6 条，不同曲率，彩色细线，从直线到急转弯）。下方一行标注 "Path = 几何形状 · 决定'走哪条线'"。
 
-横轴最左侧，展示几条代表性路径曲线（彩色，不同曲率和方向），从直的到急转弯。标注 "Path = 几何形状 · 决定'走哪条线'"。
+纵轴最下方画几条代表性 Velocity 曲线（5–6 条，不同斜率），右侧标注 "Velocity = 速度曲线 · 决定'走多快'"。
 
-纵轴最左侧，展示几条代表性速度曲线（彩色，不同斜率），从缓慢加速到急加速。标注 "Velocity = 速度曲线 · 决定'走多快'"。
+**矩阵内部不要尝试画 1024×256 = 262,144 个真实格点。改为画一个 32×16 的代表性子网格（亮蓝色 #58a6ff 小方块密铺），右下角加一个角标小字 "实际 1024 × 256"，作为降级表达。**
 
-[2s] 横轴和纵轴的交汇区域：矩阵的一个单元格高亮（闪烁），标注 "1 条轨迹 = 1 个 Path × 1 个 Velocity"。
+矩阵右下角一个突出的大字标注（橙色 #f0883e 粗体大字号）：
+"1024 × 256 = 262,144 条候选轨迹"
+其下一行小字（绿色 #3fb950）：
+"比传统方案密 32×"
 
-[3s] 关键动画：矩阵中所有 1024×256 个格子从左下角开始依次点亮（涟漪扩散效果，#58a6ff 发光），形成完整网格。伴随一个"爆炸展开"的效果，标注在矩阵右下角弹出：
-"1024 × 256 = 262,144 条候选轨迹" 字号 36px，粗体，颜色 #f0883e
-"比传统方案密 32×" 字号 22px，颜色 #3fb950
+画面底部居中一个胶囊形信息条，深色背景 #161b22 圆角 8 px、白色 #e6edf3 中等字号粗体：
+"分解后的计算量 = O(1024 + 256) = O(1280)，而非 O(262,144)"
 
-[4.5s] 矩阵下方出现关键说明："分解后的计算量 = O(1024 + 256) = O(1280)，而非 O(262,144)"，字号 24px，颜色 #e6edf3，背景 #161b22，圆角 8px。
+整体风格强对比、信息密度合理、文字按字面准确渲染。
 
 --- narration ---
 这是 SparseDriveV2 最关键的设计
 它把轨迹分解成两个独立维度
-Geometric Path 决定走哪条线，1024 条
-Velocity Profile 决定走多快，256 种
-两者笛卡尔积 1024 乘以 256，得到 26 万条候选
+**Geometric Path** 决定走哪条线
+共 1024 条
+**Velocity Profile** 决定走多快
+共 256 种
+两者笛卡尔积
+得到约 26 万条候选
 比传统方案密集 32 倍
-关键在于这个分解让计算量变成了加法而非乘法
-O(1280) 而不是 O(262K)
+关键在于这个分解
+让计算量变成加法而非乘法
+变成 O(1280) 而不是 O(262K)
 这就是"足够密"变得"可计算"的秘密
 
 
 >>> Coarse-to-Fine Scoring：高效筛选 #B09
 @enter: fade-up
 @exit: fade
-@visual: animation
+@visual: image
 
 --- visual ---
-深色背景 (#0d1117)，内容区域占画布 92% 宽度。
-[0s] 顶部居中标题 "Coarse-to-Fine Scoring"，字号 52px，粗体，白色，距顶 55px。副标题 "从 26 万到最优轨迹的两阶段筛选" 字号 26px，颜色 #58a6ff。
+一张 16:9 横构图的两阶段筛选示意图，扁平化技术风格。深色背景 #0d1117。
 
-[0.5s] 画面中央出现两阶段筛选动画，总宽占画布 90%：
+顶部居中标题 "Coarse-to-Fine Scoring"，白色 #e6edf3 粗体大字；副标题 "从 26 万到最优轨迹的两阶段筛选"，亮蓝色 #58a6ff。
 
-阶段 1 "粗筛 (Coarse Stage)"，持续到 [3.5s]：
-  背景是继承 B08 的 262K 矩阵（缩小版，宽 500px，高 260px）。
-  
-  [1s] 横轴 Path 维度被独立扫描：一个轻量 MLP 图标沿横轴滑动，逐行打分。Top-K 行高亮为蓝色（#58a6ff），标注 "Top-K Paths 选中"。
-  
-  [1.8s] 纵轴 Velocity 维度被独立扫描：MLP 图标沿纵轴滑动打分。Top-K 列高亮为绿色（#3fb950），标注 "Top-K Velocities 选中"。
-  
-  [2.5s] 高亮的行和列交叉，矩阵中出现 K×K 个交叉格子，同时高亮（蓝绿混色 = 青色），其余格子变暗。标注 "交叉区域 = K² 条组合轨迹 → 进入精选"。
+画面分左右两栏，总宽占画布 90%，中间一个右指箭头连接。
 
-→ 过渡箭头 →
+左栏 "粗筛 (Coarse Stage)"：
+- 一个缩小版的 262K 矩阵（继承 B08 视觉，32×16 代表网格 + "实际 1024×256" 角标）。
+- 矩阵上有几行高亮为亮蓝色 #58a6ff（约 6 行，标签 "Top-K Paths"）。
+- 矩阵上有几列高亮为绿色 #3fb950（约 6 列，标签 "Top-K Velocities"）。
+- 行与列的交叉区域高亮为青色（蓝绿混合，约 36 个格子），其余格子变暗。
+- 下方一行标签 "交叉区域 = K² 条组合轨迹 → 进入精选"，亮蓝色 #58a6ff 中等字号。
+- 底部一行小字 "两个 MLP 各自打分 · 计算量 O(1024 + 256)"。
 
-阶段 2 "精选 (Fine Stage)"，从 [3.5s] 开始：
-  右侧大矩形（宽 45%，高 300px，圆角 16px，背景 #161b22，边框 2px solid #3fb950）：
-  标题 "Fine Scoring" 字号 28px，颜色 #3fb950
-  内部展示 K² 条轨迹（以卡片形式排列），卡片数量约 36-100 张（取决于 K 值）。
-  
-  [4s] "Trajectory Re-Conditioning" 标注出现：所有卡片被送入一个网络，进行路径和速度的联合时空推理。
-  
-  [4.5s] 卡片依次被评分，分数数字弹出。最优卡片高亮为金色（#d29922），放大弹出到画面中央。标注 "最优轨迹 ✓"
+中间一个右指大箭头（亮蓝色 #58a6ff）。
 
-[5.5s] 底部总结条："262,144 → 粗筛 Top-K² (~100) → 精排 → 1 条最优轨迹"，字号 26px，颜色 #e6edf3。
+右栏 "精选 (Fine Stage)"：
+- 一个大矩形（圆角 16 px、深色背景 #161b22、2 px 绿色 #3fb950 边框）。
+- 顶部标题 "Fine Scoring"，绿色粗体。
+- 内部排列约 36 张小卡片（6×6 网格），每张卡片代表一条候选轨迹，每张卡片右上角一个小分数。
+- 其中一张卡片高亮为金色 #d29922 实心填充，旁边一个金色"最优 ✓"标签，放大约 1.5 倍突出显示。
+- 标签 "Trajectory Re-Conditioning · 时空联合推理"。
+
+画面底部居中一个胶囊形横幅，深色背景 #161b22 圆角 8 px、白色 #e6edf3 中等字号粗体：
+"262,144 → 粗筛 Top-K² (~100) → 精排 → 1 条最优轨迹"
+
+整体风格干净、信息密度合适、文字清晰。
 
 --- narration ---
-26 万条不可能全部精细评分，用两阶段策略
-粗筛阶段，两个轻量 MLP 分别对 1024 条路径和 256 种速度独立打分
-各选 Top-K，计算量是 O(1280) 不是 O(262K)
-精选阶段，Top-K 路径和速度两两组合成 K² 条完整轨迹
+26 万条不可能全部精细评分
+所以用两阶段策略
+**粗筛阶段**
+两个轻量 MLP
+分别对 1024 条路径和 256 种速度独立打分
+各选 Top-K
+计算量 O(1280)
+**精选阶段**
+Top-K 路径和速度两两组合
+得到 K² 条完整轨迹
 通过 Trajectory Re-Conditioning 做时空联合推理
-逐条精细评分，选出最高分轨迹
-262K → 粗筛到约 100 条 → 精排到 1 条
+逐条精细评分
+选出最高分轨迹
+26 万 → 粗筛到约 100 条 → 精排到 1 条
 整个过程高效、稳定、可微
 
 
 >>> Spatial-Temporal Interactions #B10
 @enter: fade
 @exit: fade
-@visual: animation
+@visual: image
 
 --- visual ---
-深色背景 (#0d1117)，内容区域占画布 88% 宽度。
-[0s] 顶部居中标题 "Spatial-Temporal Interactions"，字号 48px，粗体，白色，距顶 65px。副标题 "Ego 也是一个 Agent" 字号 26px，颜色 #3fb950。
+一张 16:9 横构图的三种 Attention 类型示意图，扁平化技术风格。深色背景 #0d1117。
 
-[0.5s] 画面中央出现三种交互类型，纵向排列，间距 28px，总宽占画布 82%：
+顶部居中标题 "Spatial-Temporal Interactions"，白色 #e6edf3 粗体大字；副标题 "Ego 也是一个 Agent"，绿色 #3fb950 中等字号。
 
-交互 1 [0.5s] "Agent-Temporal Cross-Attention" (#58a6ff)：
-  图标：Agent 的现在帧和过去 3 帧用虚线连接
-  说明 "每个 Agent 关注自己 H=3 帧历史" 字号 24px
+画面中央竖向排列三块，总宽占画布 82%、间距充足。每块由左侧图标 + 右侧标题与说明组成。
 
-交互 2 [1.3s] "Agent-Agent Self-Attention" (#3fb950)：
-  图标：3 个 Agent 互相连线
-  说明 "所有 Agent（含 Ego）之间交互" 字号 24px
+块 1 "Agent-Temporal Cross-Attention"（亮蓝色 #58a6ff 标题）：
+- 图标：一个 Agent 头像（圆形）右侧三条虚线连到三个略小的灰色 Agent 头像（表示过去 3 帧）。
+- 说明 "每个 Agent 关注自己 H = 3 帧历史"。
 
-交互 3 [2.1s] "Agent-Map Cross-Attention" (#f0883e)：
-  图标：Agent 和 Map 折线之间连线
-  说明 "Agent 与地图元素交互" 字号 24px
+块 2 "Agent-Agent Self-Attention"（绿色 #3fb950 标题）：
+- 图标：三个 Agent 头像（包括 Ego——蓝色突出）互相用细线连接。
+- 说明 "所有 Agent（含 Ego）之间交互"。
 
-[3.5s] 底部高亮核心设计："Ego Vehicle 被当作普通 Agent 实例参与所有交互。规划和预测本质是同一个任务的不同实例。"，字号 24px，颜色 #3fb950，背景 #161b22，圆角 8px。
+块 3 "Agent-Map Cross-Attention"（橙色 #f0883e 标题）：
+- 图标：一个 Agent 头像与几条 Map polyline 折线之间用虚线连接。
+- 说明 "Agent 与地图元素交互"。
+
+画面底部居中一个胶囊形横幅，深色背景 #161b22 圆角 8 px、绿色 #3fb950 中等字号粗体：
+"Ego Vehicle 被当作普通 Agent 参与所有交互"
+其下一行小字（灰色 #8b949e）：
+"规划和预测本质是同一个任务的不同实例"
+
+整体风格干净、三块对齐严格、文字清晰。
 
 --- narration ---
 感知和规划之间通过三种 Attention 连接
-Agent-Temporal 关注自己的历史，Agent-Agent 各车交互，Agent-Map 与地图交互
-最关键的设计是 Ego Vehicle 被当作一个普通 Agent
+**Agent-Temporal** 关注自己的历史
+**Agent-Agent** 各车互相交互
+**Agent-Map** 与地图元素交互
+最关键的设计是
+Ego Vehicle 被当作一个普通 Agent
 用同样的机制参与所有交互
 规划和预测本质上是同一个任务
 
@@ -328,49 +411,67 @@ Agent-Temporal 关注自己的历史，Agent-Agent 各车交互，Agent-Map 与�
 @visual: video(./assets/model_driving_topdown.mp4)
 
 --- visual ---
-SparseDriveV2 在 CARLA 中的闭环驾驶实测，鸟瞰视角。Ego 车（蓝色）在右车道行驶，NPC（红色）从左侧切入。SparseDriveV2 检测到切入车辆后，通过 Coarse-to-Fine Scoring 选出减速让行的轨迹，Pure Pursuit 执行控制。完整展示了从 6 相机 → 感知 → 262K 候选打分 → 最优轨迹 → 控制的端到端链路。
+（本块使用本地视频 ./assets/model_driving_topdown.mp4，无需生成图片）
+
+SparseDriveV2 在 CARLA 中的闭环驾驶实测，鸟瞰视角。
+Ego 车（蓝色）在右车道行驶，NPC（红色）从左侧切入。
+SparseDriveV2 检测到切入车辆后，通过 Coarse-to-Fine Scoring 选出减速让行轨迹，
+Pure Pursuit 执行控制。完整展示从 6 相机 → 感知 → 262K 候选打分 → 最优轨迹 → 控制的端到端链路。
 
 --- narration ---
-来看 SparseDriveV2 在 CARLA 中的实际驾驶表现
+来看 SparseDriveV2 在 CARLA 中实际驾驶
 注意 NPC 从左侧切入时
 模型的 6 相机输入检测到这一变化
-感知模块更新了 NPC 的位置和速度
-Scoring-Based Planner 在 26 万候选中选出减速让行的轨迹
+感知模块更新 NPC 的位置和速度
+Scoring-Based Planner
+在 26 万候选中选出减速让行的轨迹
 Pure Pursuit 执行刹车
-整个链路在 50ms 内完成，车平稳减速
+整个链路在 50 ms 内完成
+车平稳减速
 这就是从像素到控制的完整端到端
+EP06 我们会再从"考官视角"看这同一段
 
 
 >>> Scaling Law 与性能 #B12
 @enter: fade
 @exit: fade
-@visual: animation
+@visual: image
 
 --- visual ---
-深色背景 (#0d1117)，内容区域占画布 90% 宽度。
-[0s] 顶部居中标题 "Scaling Law & 性能"，字号 52px，粗体，白色，距顶 60px。
+一张 16:9 横构图的性能总览图（含 Scaling Law），扁平化技术风格。深色背景 #0d1117。
 
-[0.5s] 画面分为左右两栏，总宽占画布 88%，间距 40px：
+顶部居中标题 "Scaling Law & 性能总览"，白色 #e6edf3 粗体大字。
 
-左栏 "密度 Scaling"，宽 45%：
-  一个折线图（背景 #161b22，圆角 8px，内边距 16px）：
-  X 轴 "密度 1× → 32×"，Y 轴 "PDMS 88→92"
-  折线持续上升，无饱和趋势
-  标注 "候选越密，性能越好 · 未见饱和" 字号 20px，颜色 #3fb950
+画面分左右两栏，总宽占画布 88%，间距充足。
 
-右栏 "关键性能数字"，宽 45%：
-  纵向排列的指标卡片，行间距 20px：
-  卡片 1 "NAVSIM PDMS: 92.0" 字号 24px，颜色 #3fb950
-  卡片 2 "NAVSIM EPDMS: 90.1 (领先 4.6)" 字号 24px，颜色 #3fb950
-  卡片 3 "Bench2Drive DS: 89.15" 字号 24px，颜色 #3fb950
-  卡片 4 "Bench2Drive SR: 70.00%" 字号 24px，颜色 #3fb950
+左栏 "密度 Scaling Law"（占宽 50%，**作为主角占更大版面**）：
+- 一个折线图（深色背景 #161b22 圆角 12 px、内边距大）
+- 横轴 "候选密度（1× → 32×）"，亮蓝色 #58a6ff
+- 纵轴 "NAVSIM PDMS（88 → 92）"，绿色 #3fb950
+- 一条向右上单调上升的曲线（深绿色 #3fb950 3 px），曲线在 32× 处仍在上升，没有饱和。
+- 曲线上 5 个数据点小圆圈
+- 右上角一行金色 #d29922 小字 "未见饱和"
 
-[4s] 底部精简对比条："vs UniAD: 训练 144h→20h · 推理 1.8→9 FPS · Backbone R101→R34"
+右栏 "关键性能数字"（占宽 35%）：
+- 两个 hero number 大数字卡片（圆角 12 px 各占整栏一半高度），竖向堆叠：
+  - 卡片 1 "EPDMS 90.1"（绿色 #3fb950 超大粗体），下方一行小字 "NAVSIM 开环 · 领先第二名 4.6"。
+  - 卡片 2 "DS 89.15"（亮蓝色 #58a6ff 超大粗体），下方一行小字 "Bench2Drive 闭环 · 220 路线"。
+
+画面底部居中一个胶囊形信息条，深色背景 #161b22 圆角 8 px、白色 #e6edf3 中等字号：
+"vs UniAD：训练 144h → ~10h · 推理 1.8 → 实时 · Backbone R-101 → R-34"
+
+整体风格干净、信息密度精简、文字按字面准确渲染。
 
 --- narration ---
-SparseDriveV2 发现轨迹密度和性能之间存在 Scaling Law
-候选从 1× 密到 32×，性能一直涨，没有饱和
-在 NAVSIM 开环评测中 PDMS 92.0、EPDMS 90.1
-Bench2Drive 闭环 DS 89.15、SR 70%，都是目前最好
-对比 UniAD，训练快 7 倍，推理快 5 倍，backbone 更轻
+SparseDriveV2 发现轨迹密度和性能之间存在 **Scaling Law**
+候选从 1× 密到 32×
+性能一直涨，没有饱和
+NAVSIM 开环 EPDMS 90.1
+领先第二名 4.6 分
+Bench2Drive 闭环 DS 89.15
+都是目前最好成绩
+对比 UniAD
+训练快 7 倍
+推理快得多
+Backbone 更轻
 Scoring + Sparse 范式的效率优势是全方位的
