@@ -68,15 +68,15 @@ CARLA 的传感器分为三大类
 
 [2s] 俯视图右侧出现关键参数面板（宽 280px，背景 #161b22，圆角 12px，内边距 20px）：
   标题 "sensor.camera.rgb" 字号 22px，等宽字体，颜色 #58a6ff
-  "image_size_x: 1920" 字号 20px
-  "image_size_y: 1080" 字号 20px
-  "fov: 110" 字号 20px
-  "sensor_tick: 0.05" 字号 20px
+  "image_size_x: 1600" 字号 20px
+  "image_size_y: 900" 字号 20px
+  "fov: 70" 字号 20px
+  "sensor_tick: 0.1" 字号 20px
 
 [3.5s] 俯视图下方出现一行小字标注 "SparseDriveV2 纯视觉方案：6 个 RGB 相机 = 全部输入，无 LiDAR"，字号 22px，颜色 #3fb950，背景 #161b22，圆角 8px，内边距 10px 20px。
 
 --- narration ---
-**RGB Camera** 是最重要的传感器
+RGB Camera 是最重要的传感器
 SparseDriveV2 的六个环视相机就是这个类型
 前方、前左、前右、后方、后左、后右
 六个相机完整覆盖车辆周围 360 度
@@ -85,7 +85,26 @@ SparseDriveV2 是纯视觉方案
 六个 RGB 相机就是全部输入，不需要 LiDAR
 
 
->>> 深度与语义分割相机 #B04
+>>> 六相机实拍：CARLA 中的环视画面 #B04
+@enter: fade
+@exit: fade
+@visual: video(./assets/CAM_FRONT.mp4)
+
+--- visual ---
+CARLA 仿真中的实际相机输出。本块展示前视相机（CAM_FRONT），后续 5 个相机可在分屏布局中展示。画面为 960×540 分辨率、10fps 的原始 CARLA 渲染输出，未经后处理。
+
+--- narration ---
+来看 CARLA 中六个环视相机的实际输出
+这是前视相机 CAM_FRONT 的画面
+注意这是 CARLA 直接渲染的原始数据
+没有经过任何后处理
+后面的三集我们会看到这些画面如何一步步变成驾驶决策
+右前和左前相机覆盖车辆侧前方
+后视和侧后相机覆盖后方盲区
+六个相机拼起来就是完整的 360 度环视感知
+
+
+>>> 深度与语义分割相机 #B05
 @enter: fade
 @exit: fade
 @visual: animation
@@ -107,15 +126,15 @@ SparseDriveV2 是纯视觉方案
 
 --- narration ---
 除了 RGB，CARLA 还提供了深度、语义分割和实例分割相机
-**Depth** 输出每个像素到相机的距离
-**语义分割**给每个像素打上 28 个类别标签中的一个
-**实例分割**在此基础上区分同类的不同个体
-这些数据在**训练阶段**非常重要
+Depth 输出每个像素到相机的距离
+语义分割给每个像素打上 28 个类别标签中的一个
+实例分割在此基础上区分同类的不同个体
+这些数据在训练阶段非常重要
 它们提供了完美的像素级 Ground Truth
 用来监督感知模型的训练
 
 
->>> LiDAR 与 RADAR #B05
+>>> LiDAR 与 RADAR #B06
 @enter: fade-up
 @exit: fade
 @visual: animation
@@ -145,14 +164,14 @@ SparseDriveV2 是纯视觉方案
 [3.5s] 底部强调："SparseDriveV2 不使用 LiDAR/RADAR，但它们是其他方案的标准配置"，字号 22px，颜色 #8b949e。
 
 --- narration ---
-**LiDAR** 通过旋转扫描生成三维点云
+LiDAR 通过旋转扫描生成三维点云
 可以配置通道数、探测距离和旋转频率
-**RADAR** 用锥形区域探测，返回速度和方位角
+RADAR 用锥形区域探测，返回速度和方位角
 这两种传感器在很多自动驾驶方案中都是标配
 但 SparseDriveV2 选择了纯视觉路线，不依赖它们
 
 
->>> 定位与事件检测 #B06
+>>> 定位与事件检测 #B07
 @enter: fade
 @exit: fade
 @visual: animation
@@ -176,14 +195,14 @@ SparseDriveV2 是纯视觉方案
 [3.5s] 底部标注 "事件检测器 → Bench2Drive 扣分项的直接来源"，字号 22px，颜色 #3fb950，背景 #161b22，圆角 8px。
 
 --- narration ---
-**GNSS** 和 **IMU** 提供定位和姿态信息
+GNSS 和 IMU 提供定位和姿态信息
 可以加入噪声来模拟真实传感器的误差
-三种**事件检测器**在闭环评测中至关重要
+三种事件检测器在闭环评测中至关重要
 碰撞、压线、闯红灯的每一次违规
 都是通过它们记录并计入最终的 Driving Score
 
 
->>> Ground Truth：训练与推理的区别 #B07
+>>> Ground Truth：训练与推理的区别 #B08
 @enter: fade-up
 @exit: fade
 @visual: animation
@@ -204,7 +223,7 @@ SparseDriveV2 是纯视觉方案
   底部 "模型学习：正确结果是什么" 字号 20px，颜色 #8b949e
 
 右半 "推理 / 闭环评测"，宽度 48%，背景 #0d1117，边框 2px solid #f0883e，圆角 12px，内边距 24px：
-  上方场景示意：同样的 Ego 车和传感器画面，但**没有任何标注叠加**，只有原始图像
+  上方场景示意：同样的 Ego 车和传感器画面，但没有任何标注叠加，只有原始图像
   下方标注 "输入" 字号 28px，颜色 #f0883e
   列表（字号 22px）：
   "仅原始传感器数据"
@@ -218,15 +237,15 @@ SparseDriveV2 是纯视觉方案
 
 --- narration ---
 一个非常重要的区分
-**训练阶段**，Ground Truth 是监督信号
+训练阶段，Ground Truth 是监督信号
 包围盒、语义图、轨迹 —— 模型用它们学习"正确结果"
-但到了**推理和闭环评测阶段**
+但到了推理和闭环评测阶段
 模型只能看原始传感器数据
 6 张 RGB 图像，不能偷看 GT，不能偷看高精地图
 GT 是训练时的老师，不是考试时的答案
 
 
->>> 六相机数据流：从仿真到算法 #B08
+>>> 六相机数据流：从仿真到算法 #B09
 @enter: fade
 @exit: fade
 @visual: animation
@@ -270,7 +289,7 @@ GT 是训练时的老师，不是考试时的答案
 这就是纯视觉端到端的完整数据流
 
 
->>> 本集总结 #B09
+>>> 本集总结 #B10
 @enter: fade-up
 @exit: fade
 @visual: animation
@@ -284,7 +303,7 @@ GT 是训练时的老师，不是考试时的答案
   右下节点 "Bench2Drive" (#f0883e) — "考试协议 · 220 路线 + DS 评分" 字号 24px
 三个节点依次淡入：[0.5s] CARLA → [1.5s] SparseDriveV2 → [2.5s] Bench2Drive。
 [3s] 三条连线（accent 色，2px）同时出现，三角形闭合。中心出现 "闭环" 字样，字号 28px，颜色 #e6edf3。
-[4s] 底部出现下集预告："下一集：CARLA 仿真引擎与 API — 让 tick 循环跑起来"，字号 28px，颜色 #58a6ff。
+[4s] 底部出现下集预告："下一集：仿真引擎与 API — 让 tick 循环跑起来"，字号 28px，颜色 #58a6ff。
 
 --- narration ---
 这集我们给 Ego 车装上了传感器系统

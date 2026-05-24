@@ -134,7 +134,6 @@ Agent 自动驾驶，在每 50ms 的 tick 间隔内完成推理和控制
 
 [3.5s] 流水线进入阶段 6 "Log Accumulation" (宽 160px，边框 #30363d)：
   每条路线结束后，所有 infractions 汇总
-  一个 infractions log 面板弹出，展示违规记录
 
 [4.5s] 底部出现标注："每条路线独立记录 · 220 条路线汇总 → Driving Score"，字号 22px，颜色 #8b949e。
 
@@ -149,8 +148,27 @@ apply_control 发送油门、转向和刹车
 220 条路线全部跑完后，汇总出 Driving Score
 
 
->>> 失败案例：违规的代价 #B05
+>>> 成功案例：Cut-In 安全通过 #B05
 @enter: fade-up
+@exit: fade
+@visual: video(./assets/pass_cutin_topdown.mp4)
+
+--- visual ---
+SparseDriveV2 在 Cut-In 场景中的成功驾驶，鸟瞰视角。蓝色 Ego 车在右车道行驶，红色 NPC 从左侧追上后切入。SparseDriveV2 检测到切入车辆，选出减速轨迹，Ego 平稳减速让行。此次运行 NC=1.0（无碰撞）、DAC=1.0（始终在车道内），EPDMS 评分达标。
+
+--- narration ---
+先看一个成功的案例 —— 左侧车辆切入
+注意蓝色 Ego 车的反应
+SparseDriveV2 检测到红色 NPC 正在靠近
+模型在 26 万候选中选出减速让行的轨迹
+Ego 平稳刹车，保持安全距离
+整个过程：无碰撞、无压线、无闯红灯
+这是一次教科书式的安全驾驶
+三个核心指标全部达标
+
+
+>>> 失败案例：违规的代价 #B06
+@enter: fade
 @exit: fade
 @visual: animation
 
@@ -187,16 +205,38 @@ apply_control 发送油门、转向和刹车
 
 --- narration ---
 闭环评测中，每次违规都要付出代价
-**碰撞行人或车辆**是最严重的，扣分最重
-**闯红灯**次之
-**压线或偏离道路**再次
-**超时未完成路线**，整条路线直接零分
+碰撞行人或车辆是最严重的，扣分最重
+闯红灯次之
+压线或偏离道路再次
+超时未完成路线，整条路线直接零分
 所有路线的违规记录汇总成 Infraction Score
-乘以 Route Completion 就是最终的 **Driving Score**
-这个公式体现了闭环评测的核心 —— 既要开得远，又要开得安全
+乘以 Route Completion 就是最终的 Driving Score
+这个公式体现了闭环评测的核心
+既要开得远，又要开得安全
 
 
->>> 训练 Pipeline #B06
+>>> 域差案例：当模型遇到弯道 #B07
+@enter: fade
+@exit: fade
+@visual: video(./assets/fail_changelane_topdown.mp4)
+
+--- visual ---
+SparseDriveV2 在 Town04 弯道段 ChangeLane 场景中的失败案例，鸟瞰视角。Ego 车（蓝色）进入弯道后，模型输出近零横向轨迹（域差：训练数据以直道为主），导致 Ego 偏离道路。81% 的 tick 中车辆处于 off-road 状态。这不是工程 bug，而是算法局限 —— SparseDriveV2 在 nuScenes/NAVSIM 直道数据上训练，未见过 CARLA 弯道几何。
+
+--- narration ---
+再来看一个域差导致的失败案例
+这是 Town04 的弯道路段
+Ego 车进入弯道后，SparseDriveV2 输出了近乎直线的轨迹
+因为模型在 nuScenes 和 NAVSIM 数据上训练
+两个数据集都以直道场景为主
+导致模型在 CARLA 的弯道上表现不佳
+这不是工程错误，而是算法局限 —— 域差问题
+解决需要针对 CARLA 弯道做轻量微调
+这也说明了为什么闭环评测如此重要
+开环评测可能根本发现不了这个问题
+
+
+>>> 训练 Pipeline #B08
 @enter: fade
 @exit: fade
 @visual: animation
@@ -229,7 +269,7 @@ apply_control 发送油门、转向和刹车
 效率提升超过一个数量级
 
 
->>> Loss Function #B07
+>>> Loss Function #B09
 @enter: fade
 @exit: fade
 @visual: animation
@@ -241,7 +281,7 @@ apply_control 发送油门、转向和刹车
 [0.5s] 画面中央出现总公式，宽占画布 70%，背景 #161b22，圆角 12px，内边距 20px：
 "L = L_det + L_map + L_motion + L_plan + L_depth" 字号 32px，等宽字体，颜色 #e6edf3
 
-[1.5s] 公式下方出现五个损失项的词云式排列（非列表，而是散布在公式周围）：
+[1.5s] 公式下方出现五个损失项：
   L_det (#58a6ff) "检测：Focal + L1"
   L_map (#3fb950) "建图：分类 + 回归"
   L_motion (#f0883e) "预测：Winner-Takes-All"
@@ -260,7 +300,7 @@ apply_control 发送油门、转向和刹车
 这种多任务联合训练正是端到端优于模块化方案的根本原因
 
 
->>> 闭环评测结果 #B08
+>>> 闭环评测结果 #B10
 @enter: fade-up
 @exit: fade
 @visual: animation
@@ -269,12 +309,12 @@ apply_control 发送油门、转向和刹车
 深色背景 (#0d1117)，内容区域占画布 92% 宽度。
 [0s] 顶部居中标题 "闭环评测结果"，字号 52px，粗体，白色，距顶 55px。
 
-[0.5s] 画面中央不是表格，而是一场"路线完成动画"：
+[0.5s] 画面中央上演"路线完成动画"：
 
 一个简化的俯视地图（宽 70%，高 280px，背景 #0d1117，边框 1px #30363d），上面有一条从起点到终点的路线。
 
 [1s] Ego 车从起点出发，沿路线行驶（动画）。
-[2s] 行驶到一半，出现一个场景：前方有车切入（场景标签弹出）。Ego 平滑减速让行（绿色 ✓）。
+[2s] 行驶到一半，出现场景：前方有车切入（场景标签弹出）。Ego 平滑减速让行（绿色 ✓）。
 [3s] 继续行驶，接近终点。
 [3.5s] Ego 车到达终点，画面弹出三个分数（依次展开）：
 
@@ -284,9 +324,8 @@ apply_control 发送油门、转向和刹车
   "=" →
 "Driving Score = 89.15" (大字弹出，粗体，颜色 #58a6ff)
 
-[5s] 底部出现精简对比数据（单行标签）：
+[5s] 底部精简对比数据：
   "SparseDriveV2: DS 89.15 · SR 70.00%  vs  DriveSuprim: DS 83.02 · SR 60.00%"
-  字号 22px，颜色 #e6edf3
 
 --- narration ---
 我们跟着一条路线来理解结果
@@ -300,7 +339,7 @@ SparseDriveV2 做出正确决策，安全通过
 这是在 CARLA 里真实驾驶得出的成绩
 
 
->>> 全面对比 #B09
+>>> 全面对比 #B11
 @enter: fade
 @exit: fade
 @visual: animation
@@ -337,7 +376,7 @@ Backbone 从 ResNet-101 缩小到 ResNet-34
 在 CARLA 上用真实驾驶验证了自己
 
 
->>> 系列总结与展望 #B10
+>>> 系列总结与展望 #B12
 @enter: fade-up
 @exit: fade
 @visual: animation
@@ -372,7 +411,7 @@ Backbone 从 ResNet-101 缩小到 ResNet-34
 六集教程到这里全部结束了
 我们从 CARLA 的 Client-Server 架构开始
 给 Ego 车装上传感器，跑通 tick 同步闭环
-理解端到端范式从不做 Dense BEV 到 Sparse Scoring 的演进
+理解端到端范式从 Dense BEV 到 Sparse Scoring 的演进
 深入拆解了 SparseDriveV2 的每个模块
 最后在 CARLA 上完成闭环评测验证
 未来的方向是 World Model 和 VLM 驱动的自动驾驶

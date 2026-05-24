@@ -54,7 +54,7 @@ CARLA 的同步模式、Traffic Manager 和 Python API
 CARLA 有两种运行模式
 异步模式下 Server 全速运行，Client 随时读取
 时间步不固定，每次跑都可能不同
-**同步模式**才是做研究的正确选择
+同步模式才是做研究的正确选择
 Client 每调用一次 tick，Server 才走一步
 配合固定时间步，整个仿真完全确定性可复现
 算法训练和 Bench2Drive 评测都必须用同步模式
@@ -114,7 +114,7 @@ fixed_delta_seconds 设为 0.05 秒
 标注 "Traffic Manager 负责所有 NPC 行为，制造丰富的交互场景" 字号 20px，颜色 #8b949e
 
 --- narration ---
-**Traffic Manager** 运行在 Client 端，控制所有 NPC 车辆
+Traffic Manager 运行在 Client 端，控制所有 NPC 车辆
 它的内部是一条五阶段流水线
 先扫描世界状态，再规划每辆车的路径
 检测轨迹冲突，处理红绿灯
@@ -124,7 +124,25 @@ fixed_delta_seconds 设为 0.05 秒
 这些正是 Bench2Drive 要考察的场景
 
 
->>> Traffic Manager 配置 #B05
+>>> Traffic Manager 实战：Cut-In 场景 #B05
+@enter: fade-up
+@exit: fade
+@visual: video(./assets/cutin_topdown.mp4)
+
+--- visual ---
+CARLA 中 Traffic Manager 驱动的 Cut-In 场景鸟瞰画面。Ego 车（蓝色）在右车道匀速行驶，NPC 车辆（红色）从左侧车道追上后切入 Ego 前方。此场景由 Bench2Drive 行为树控制 NPC，Traffic Manager 提供底层路径跟随。
+
+--- narration ---
+来看一个 Traffic Manager 驱动的实际场景
+左侧红色 NPC 车辆从相邻车道追上 Ego 车
+然后切入 Ego 前方
+这叫做 Cut-In，是 Bench2Drive 考试中的经典场景
+NPC 的所有行为都由 Traffic Manager 的路径规划驱动
+后面我们会看到 SparseDriveV2 如何应对这种场景
+现在先记住，TM 让 NPC 有了智能
+
+
+>>> Traffic Manager 配置 #B06
 @enter: fade
 @exit: fade
 @visual: animation
@@ -160,7 +178,7 @@ Traffic Manager 可以全局设定，也可以对单辆车精确调参
 对测试算法的鲁棒性非常有用
 
 
->>> 天气与光照 #B06
+>>> 天气与光照 #B07
 @enter: fade
 @exit: fade
 @visual: animation
@@ -182,7 +200,7 @@ Traffic Manager 可以全局设定，也可以对单辆车精确调参
 [3s] 网格下方出现关键标注："天气仅影响视觉和传感器数据 —— 不影响车辆物理（无打滑效果）"，字号 24px，颜色 #d29922，背景 #161b22，圆角 8px，内边距 10px 20px。
 
 --- narration ---
-CARLA 内置 23 种天气预设，覆盖晴雨雾夜沙尘暴
+CARLA 内置多种天气预设，覆盖晴雨雾夜沙尘暴
 天气参数可以实时通过 API 调整
 重要细节：天气变化只影响视觉和传感器
 不会改变车辆的物理行为，雨天不会打滑
@@ -190,7 +208,7 @@ Bench2Drive 会在不同天气条件下评测
 这对算法的鲁棒性是一个挑战
 
 
->>> Python API：连接与创建 #B07
+>>> Python API：连接与创建 #B08
 @enter: fade-up
 @exit: fade
 @visual: animation
@@ -221,7 +239,7 @@ ego_bp = bp_lib.find('vehicle.tesla.model3')
 spawn = world.get_map().get_spawn_points()[0]
 ego = world.spawn_actor(ego_bp, spawn)
 ```
-代码分三段，对应注释编号，每段依次淡入（间隔 1s）。
+代码分三段，每段依次淡入（间隔 1s）。
 关键字 #ff7b72，字符串 #a5d6ff，注释 #8b949e。
 
 --- narration ---
@@ -231,7 +249,7 @@ ego = world.spawn_actor(ego_bp, spawn)
 接下来是这一集的关键 —— 传感器 + 主循环
 
 
->>> 同步数据闭环：完整的 tick 循环 #B08
+>>> 同步数据闭环：完整的 tick 循环 #B09
 @enter: fade
 @exit: fade
 @visual: animation
@@ -278,10 +296,8 @@ ego = world.spawn_actor(ego_bp, spawn)
 
 [4s] 环的中心出现标注 "tick 间隔 50ms → 整个环必须在 50ms 内完成 → 推理延迟是硬约束"，字号 22px，颜色 #d29922。
 
-[5s] 环的右侧出现代码片段（透明度 60%，作为参考），展示主循环的 6 行核心代码，等宽字体，字号 20px。
-
 --- narration ---
-这是整个系列最重要的图 —— **同步数据闭环**
+这是整个系列最重要的图 —— 同步数据闭环
 每一帧都按这个环运转
 world.tick 推进仿真一步
 传感器回调采集 6 个相机和其他传感器数据
@@ -294,7 +310,27 @@ tick 间隔 50 毫秒，整个环必须在这 50 毫秒内完成
 推理延迟是硬约束，这也是 Sparse 范式追求效率的原因
 
 
->>> 本集总结 #B09
+>>> 闭环实战：Cut-In 完整 tick 循环 #B10
+@enter: fade
+@exit: fade
+@visual: video(./assets/cutin_chase.mp4)
+
+--- visual ---
+SparseDriveV2 闭环控制下的 Cut-In 场景，第三人称跟车视角。每一帧：world.tick() → 6 相机采集 → SparseDriveV2 推理 → Pure Pursuit 控制 → ego 执行。画面中 NPC（红色）从左侧切入，ego（蓝色）检测到后主动减速让行。
+
+--- narration ---
+这就是同步数据闭环在实际运行中的样子
+注意画面中的蓝色 Ego 车和红色 NPC
+每当左侧的红色车切入
+Ego 车的 SparseDriveV2 模型检测到它
+输出减速轨迹，Pure Pursuit 执行刹车
+整个过程在每一帧的 50ms tick 间隔内完成
+到这一集为止，我们有了世界、传感器和控制循环
+下一集开始，我们要进到循环里最关键的那一步
+Model Inference 到底在做什么
+
+
+>>> 本集总结 #B11
 @enter: fade-up
 @exit: fade
 @visual: animation

@@ -48,7 +48,25 @@ SparseDriveV2 的整体架构分为四个模块
 整个链路端到端可微
 
 
->>> Image Encoder #B03
+>>> 模型的"眼睛"：前向三相机实拍 #B03
+@enter: fade
+@exit: fade
+@visual: video(./assets/CAM_FRONT.mp4)
+
+--- visual ---
+SparseDriveV2 的三路前向相机输入之一：CAM_FRONT。这是 CARLA 仿真中 Ego 车前方视角的原始 RGB 画面。模型在每个 tick 接收 CAM_FRONT、CAM_FRONT_LEFT、CAM_FRONT_RIGHT 三路图像，内部 resize 到 1920×1080 后送入 ResNet-34 backbone。
+
+--- narration ---
+先直观感受一下 SparseDriveV2 看到的画面
+这是前视相机 CAM_FRONT 的原始输出
+加上左前和右前，三路前向相机是模型规划的依据
+后向三路相机在 SparseDriveV2 中用于建图辅助
+但规划主要依赖前方视野
+这些画面每秒更新 10 次，每次都要在 50ms 内完成
+从像素到轨迹的完整推理
+
+
+>>> Image Encoder #B04
 @enter: fade-up
 @exit: fade
 @visual: animation
@@ -77,7 +95,7 @@ SparseDriveV2 使用 ResNet-34，只有 2180 万参数
 整个模型参数量约 5000 万，非常轻量
 
 
->>> Deformable Aggregation：核心采样算子 #B04
+>>> Deformable Aggregation：核心采样算子 #B05
 @enter: fade
 @exit: fade
 @visual: animation
@@ -101,7 +119,7 @@ SparseDriveV2 使用 ResNet-34，只有 2180 万参数
 [4.5s] 底部标注 "自定义 CUDA 算子实现 · 每个 query 独立并行采样"，字号 20px，颜色 #3fb950。
 
 --- narration ---
-**Deformable Aggregation** 是整个感知模块的核心
+Deformable Aggregation 是整个感知模块的核心
 它分三步工作
 第一步，每个检测 query 在它的 3D Anchor 周围生成一组关键点
 第二步，把这些 3D 关键点投影到各个相机的 2D 图像平面
@@ -111,7 +129,7 @@ SparseDriveV2 使用 ResNet-34，只有 2180 万参数
 整套操作用自定义 CUDA 算子实现，高度并行
 
 
->>> 对称稀疏感知：Detection & Tracking #B05
+>>> 对称稀疏感知：Detection & Tracking #B06
 @enter: fade
 @exit: fade
 @visual: animation
@@ -149,7 +167,7 @@ SparseDriveV2 使用 ResNet-34，只有 2180 万参数
 不需要匈牙利匹配等复杂后处理
 
 
->>> 对称稀疏感知：Online Mapping #B06
+>>> 对称稀疏感知：Online Mapping #B07
 @enter: fade
 @exit: fade
 @visual: animation
@@ -174,7 +192,7 @@ SparseDriveV2 使用 ResNet-34，只有 2180 万参数
 [4s] 底部标注 "一套 Decoder 架构，两种实体类型。对称设计 = 代码复用 + 概念统一"，字号 22px，颜色 #8b949e。
 
 --- narration ---
-建图模块和检测模块是完全**对称**的
+建图模块和检测模块是完全对称的
 同样的 6 层 Decoder、同样的 Deformable Aggregation
 区别只在 query 定义
 检测用 11 维 BBox anchor，建图用 20 点 Polyline anchor
@@ -182,7 +200,7 @@ SparseDriveV2 使用 ResNet-34，只有 2180 万参数
 一套架构处理两种实体，这个设计非常优雅
 
 
->>> Factorized Vocabulary：262K 候选的由来 #B07
+>>> Factorized Vocabulary：262K 候选的由来 #B08
 @enter: fade
 @exit: fade
 @visual: animation
@@ -203,11 +221,11 @@ SparseDriveV2 使用 ResNet-34，只有 2180 万参数
   横轴 "1024 Geometric Paths (空间采样 @1m 间隔)" 字号 20px，颜色 #58a6ff
   纵轴 "256 Velocity Profiles (时间采样 @0.5s 间隔)" 字号 20px，颜色 #3fb950
 
-横轴最左侧，展示几条代表性路径曲线（彩色，不同曲率和方向），从直的到急转弯，排列在矩阵底部。标注 "Path = 几何形状 · 决定'走哪条线'"。
+横轴最左侧，展示几条代表性路径曲线（彩色，不同曲率和方向），从直的到急转弯。标注 "Path = 几何形状 · 决定'走哪条线'"。
 
 纵轴最左侧，展示几条代表性速度曲线（彩色，不同斜率），从缓慢加速到急加速。标注 "Velocity = 速度曲线 · 决定'走多快'"。
 
-[2s] 横轴和纵轴的交汇区域：矩阵的一个单元格高亮（闪烁），标注 "1 条轨迹 = 1 个 Path × 1 个 Velocity"。单元格坐标线延伸出去，高亮对应的 path 和 velocity。
+[2s] 横轴和纵轴的交汇区域：矩阵的一个单元格高亮（闪烁），标注 "1 条轨迹 = 1 个 Path × 1 个 Velocity"。
 
 [3s] 关键动画：矩阵中所有 1024×256 个格子从左下角开始依次点亮（涟漪扩散效果，#58a6ff 发光），形成完整网格。伴随一个"爆炸展开"的效果，标注在矩阵右下角弹出：
 "1024 × 256 = 262,144 条候选轨迹" 字号 36px，粗体，颜色 #f0883e
@@ -218,8 +236,8 @@ SparseDriveV2 使用 ResNet-34，只有 2180 万参数
 --- narration ---
 这是 SparseDriveV2 最关键的设计
 它把轨迹分解成两个独立维度
-**Geometric Path** 决定走哪条线，1024 条
-**Velocity Profile** 决定走多快，256 种
+Geometric Path 决定走哪条线，1024 条
+Velocity Profile 决定走多快，256 种
 两者笛卡尔积 1024 乘以 256，得到 26 万条候选
 比传统方案密集 32 倍
 关键在于这个分解让计算量变成了加法而非乘法
@@ -227,7 +245,7 @@ O(1280) 而不是 O(262K)
 这就是"足够密"变得"可计算"的秘密
 
 
->>> Coarse-to-Fine Scoring：高效筛选 #B08
+>>> Coarse-to-Fine Scoring：高效筛选 #B09
 @enter: fade-up
 @exit: fade
 @visual: animation
@@ -239,9 +257,9 @@ O(1280) 而不是 O(262K)
 [0.5s] 画面中央出现两阶段筛选动画，总宽占画布 90%：
 
 阶段 1 "粗筛 (Coarse Stage)"，持续到 [3.5s]：
-  背景是继承 B07 的 262K 矩阵（缩小版，宽 500px，高 260px）。
+  背景是继承 B08 的 262K 矩阵（缩小版，宽 500px，高 260px）。
   
-  [1s] 横轴 Path 维度被独立扫描：一个轻量 MLP 图标沿横轴滑动，逐行打分，速度很快。Top-K 行高亮为蓝色（#58a6ff），标注 "Top-K Paths 选中"。
+  [1s] 横轴 Path 维度被独立扫描：一个轻量 MLP 图标沿横轴滑动，逐行打分。Top-K 行高亮为蓝色（#58a6ff），标注 "Top-K Paths 选中"。
   
   [1.8s] 纵轴 Velocity 维度被独立扫描：MLP 图标沿纵轴滑动打分。Top-K 列高亮为绿色（#3fb950），标注 "Top-K Velocities 选中"。
   
@@ -252,7 +270,7 @@ O(1280) 而不是 O(262K)
 阶段 2 "精选 (Fine Stage)"，从 [3.5s] 开始：
   右侧大矩形（宽 45%，高 300px，圆角 16px，背景 #161b22，边框 2px solid #3fb950）：
   标题 "Fine Scoring" 字号 28px，颜色 #3fb950
-  内部展示 K² 条轨迹（以卡片形式排列，每个卡片代表一条完整轨迹：一个 path 曲线 + 一个 velocity 曲线），卡片数量约 36-100 张（取决于 K 值）。
+  内部展示 K² 条轨迹（以卡片形式排列），卡片数量约 36-100 张（取决于 K 值）。
   
   [4s] "Trajectory Re-Conditioning" 标注出现：所有卡片被送入一个网络，进行路径和速度的联合时空推理。
   
@@ -262,16 +280,16 @@ O(1280) 而不是 O(262K)
 
 --- narration ---
 26 万条不可能全部精细评分，用两阶段策略
-**粗筛阶段**，两个轻量 MLP 分别对 1024 条路径和 256 种速度独立打分
+粗筛阶段，两个轻量 MLP 分别对 1024 条路径和 256 种速度独立打分
 各选 Top-K，计算量是 O(1280) 不是 O(262K)
-**精选阶段**，Top-K 路径和速度两两组合成 K² 条完整轨迹
+精选阶段，Top-K 路径和速度两两组合成 K² 条完整轨迹
 通过 Trajectory Re-Conditioning 做时空联合推理
 逐条精细评分，选出最高分轨迹
 262K → 粗筛到约 100 条 → 精排到 1 条
 整个过程高效、稳定、可微
 
 
->>> Spatial-Temporal Interactions #B09
+>>> Spatial-Temporal Interactions #B10
 @enter: fade
 @exit: fade
 @visual: animation
@@ -304,7 +322,26 @@ Agent-Temporal 关注自己的历史，Agent-Agent 各车交互，Agent-Map 与�
 规划和预测本质上是同一个任务
 
 
->>> Scaling Law 与性能 #B10
+>>> 模型驾驶实测 #B11
+@enter: fade
+@exit: fade
+@visual: video(./assets/model_driving_topdown.mp4)
+
+--- visual ---
+SparseDriveV2 在 CARLA 中的闭环驾驶实测，鸟瞰视角。Ego 车（蓝色）在右车道行驶，NPC（红色）从左侧切入。SparseDriveV2 检测到切入车辆后，通过 Coarse-to-Fine Scoring 选出减速让行的轨迹，Pure Pursuit 执行控制。完整展示了从 6 相机 → 感知 → 262K 候选打分 → 最优轨迹 → 控制的端到端链路。
+
+--- narration ---
+来看 SparseDriveV2 在 CARLA 中的实际驾驶表现
+注意 NPC 从左侧切入时
+模型的 6 相机输入检测到这一变化
+感知模块更新了 NPC 的位置和速度
+Scoring-Based Planner 在 26 万候选中选出减速让行的轨迹
+Pure Pursuit 执行刹车
+整个链路在 50ms 内完成，车平稳减速
+这就是从像素到控制的完整端到端
+
+
+>>> Scaling Law 与性能 #B12
 @enter: fade
 @exit: fade
 @visual: animation
@@ -327,12 +364,8 @@ Agent-Temporal 关注自己的历史，Agent-Agent 各车交互，Agent-Map 与�
   卡片 2 "NAVSIM EPDMS: 90.1 (领先 4.6)" 字号 24px，颜色 #3fb950
   卡片 3 "Bench2Drive DS: 89.15" 字号 24px，颜色 #3fb950
   卡片 4 "Bench2Drive SR: 70.00%" 字号 24px，颜色 #3fb950
-  每个卡片背景 #161b22，圆角 8px，内边距 12px 16px
 
-各卡片依次淡入，间隔 0.25s。
-
-[4s] 底部出现精简对比条（单行横排标签，字号 20px）：
-  "vs UniAD: 训练 144h→20h · 推理 1.8→9 FPS · Backbone R101→R34" 颜色 #e6edf3
+[4s] 底部精简对比条："vs UniAD: 训练 144h→20h · 推理 1.8→9 FPS · Backbone R101→R34"
 
 --- narration ---
 SparseDriveV2 发现轨迹密度和性能之间存在 Scaling Law
