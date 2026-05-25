@@ -45,7 +45,7 @@
 4. "Scoring-Based Planner"：2 px 绿色 #3fb950 边框；内部 "Factorized Vocabulary" / "Coarse-to-Fine Scoring"。
 5. "Planning Trajectory"：实心绿色 #3fb950 圆角矩形、深色 #0d1117 粗体文字。
 
-最下方一条灰色 #d29922 虚线箭头，从最右 "Trajectory" 输出回到最左 "Image Encoder"，箭头中央标注 "端到端梯度流 (End-to-End Gradient Flow)"。
+最下方一条金色 #d29922 虚线箭头，从最右 "Trajectory" 输出回到最左 "Image Encoder"，箭头中央标注 "端到端梯度流 (End-to-End Gradient Flow)"。
 
 整体风格干净、对称、每个模块标签清晰可读。
 
@@ -70,8 +70,9 @@ SparseDriveV2 的整体架构分为四个模块
 
 SparseDriveV2 的三路前向相机输入之一：CAM_FRONT。
 这是 CARLA 仿真中 Ego 车前方视角的原始 RGB 画面。
-模型每个 tick 接收 CAM_FRONT、CAM_FRONT_LEFT、CAM_FRONT_RIGHT 三路图像，
-内部 resize 到 1920×1080 后送入 ResNet-34 backbone。
+模型每个 tick 接收 6 路图像，
+前向三路（CAM_FRONT / CAM_FRONT_LEFT / CAM_FRONT_RIGHT）是规划的主要依据。
+图像按训练配置 resize / normalize 后送入 ResNet-34 backbone。
 
 --- narration ---
 先看 SparseDriveV2 看到的画面
@@ -103,7 +104,7 @@ SparseDriveV2 的三路前向相机输入之一：CAM_FRONT。
 → 最右输出 "S 个尺度 × N 个视角" 多尺度特征图（一摞带不同尺寸边框的小矩形）。
 
 画面底部居中一行三栏胶囊形信息条，深色背景 #161b22 圆角 8 px：
-"Backbone: ResNet-34 · 21.8M 参数" ｜ "总参数量 ~50M" ｜ "比 UniAD 的 ResNet-101 轻量 3×"
+"Backbone: ResNet-34 · 21.8M 参数" ｜ "总参数量 ~50M" ｜ "比 ResNet-101 轻量约 2×"
 （每栏间用细灰竖线分隔，文字白色 #e6edf3）
 
 整体风格干净、文字按字面准确渲染。
@@ -114,7 +115,7 @@ SparseDriveV2 的三路前向相机输入之一：CAM_FRONT。
 Image Encoder 是标准 Backbone + FPN
 SparseDriveV2 用 ResNet-34
 只有 2180 万参数
-比 UniAD 的 ResNet-101 轻量三倍
+比 ResNet-101 轻量约两倍
 6 个相机各自提特征
 FPN 融合多尺度
 输出多尺度特征图供感知模块使用
@@ -331,9 +332,9 @@ FPN 融合多尺度
 
 左栏 "粗筛 (Coarse Stage)"：
 - 一个缩小版的 262K 矩阵（继承 B08 视觉，32×16 代表网格 + "实际 1024×256" 角标）。
-- 矩阵上有几行高亮为亮蓝色 #58a6ff（约 6 行，标签 "Top-K Paths"）。
-- 矩阵上有几列高亮为绿色 #3fb950（约 6 列，标签 "Top-K Velocities"）。
-- 行与列的交叉区域高亮为青色（蓝绿混合，约 36 个格子），其余格子变暗。
+- 矩阵上示意高亮若干行，亮蓝色 #58a6ff，标签 "Top-K Paths（实际约 10）"。
+- 矩阵上示意高亮若干列，绿色 #3fb950，标签 "Top-K Velocities（实际约 10）"。
+- 行与列的交叉区域高亮为青色（蓝绿混合），可绘制 6×6 代表性子集，其余格子变暗。
 - 下方一行标签 "交叉区域 = K² 条组合轨迹 → 进入精选"，亮蓝色 #58a6ff 中等字号。
 - 底部一行小字 "两个 MLP 各自打分 · 计算量 O(1024 + 256)"。
 
@@ -342,7 +343,7 @@ FPN 融合多尺度
 右栏 "精选 (Fine Stage)"：
 - 一个大矩形（圆角 16 px、深色背景 #161b22、2 px 绿色 #3fb950 边框）。
 - 顶部标题 "Fine Scoring"，绿色粗体。
-- 内部排列约 36 张小卡片（6×6 网格），每张卡片代表一条候选轨迹，每张卡片右上角一个小分数。
+- 内部绘制 6×6 代表性子集（实际粗筛约 100 条候选），每张卡片代表一条候选轨迹，每张卡片右上角一个小分数。
 - 其中一张卡片高亮为金色 #d29922 实心填充，旁边一个金色"最优 ✓"标签，放大约 1.5 倍突出显示。
 - 标签 "Trajectory Re-Conditioning · 时空联合推理"。
 
@@ -384,7 +385,8 @@ Top-K 路径和速度两两组合
 
 块 1 "Agent-Temporal Cross-Attention"（亮蓝色 #58a6ff 标题）：
 - 图标：一个 Agent 头像（圆形）右侧三条虚线连到三个略小的灰色 Agent 头像（表示过去 3 帧）。
-- 说明 "每个 Agent 关注自己 H = 3 帧历史"。
+- 说明 "每个 Agent 关注自己 H = 3 帧历史状态"。
+- 下方灰色小字 "H 是保留的历史窗口；B06 的 5 层 Temporal Decoder 会反复利用这些历史状态"。
 
 块 2 "Agent-Agent Self-Attention"（绿色 #3fb950 标题）：
 - 图标：三个 Agent 头像（包括 Ego——蓝色突出）互相用细线连接。
@@ -405,7 +407,9 @@ Top-K 路径和速度两两组合
 画面风格参考：类似 Notion / Linear 文档中的扁平化技术插图，深色主题、低饱和配色。画面干净、无噪点、无照片级写实纹理、无阴影、无渐变背景。所有中文文字必须准确渲染，不得出现乱码、缺笔或方块。文字与背景对比度 ≥ 4.5:1，确保在 1920×1080 视频帧中清晰可读。重要内容集中在画面中央 80% 安全区内。无任何 3D 写实渲染、无照片、无光晕特效。
 --- narration ---
 感知和规划之间通过三种 Attention 连接
-**Agent-Temporal** 关注自己的历史
+**Agent-Temporal** 关注自己的 H 等于 3 帧历史状态
+前面说的五层 Temporal Decoder
+就是反复利用这些历史信息来更新 query
 **Agent-Agent** 各车互相交互
 **Agent-Map** 与地图元素交互
 最关键的设计是
@@ -480,7 +484,7 @@ NAVSIM 开环 EPDMS 90.1
 Bench2Drive 闭环 DS 89.15
 都是目前最好成绩
 对比 UniAD
-训练快 7 倍
+训练从 144 小时降到约 10 小时
 推理快得多
 Backbone 更轻
 Scoring + Sparse 范式的效率优势是全方位的

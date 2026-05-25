@@ -128,10 +128,11 @@ Agent 自动驾驶
 2. "6 Camera Capture"，绿色 #3fb950 边框；下方 "6 相机同步采集"。
 3. "SparseDriveV2 Forward"，紫色 #a371f7 边框；下方 "感知 + 建图 + 规划 → 轨迹"。
 4. "apply_control()"，金色 #d29922 边框；下方 "油门 / 转向 / 刹车"。
-5. "Infraction Check"，橙色 #f0883e 边框；卡片内部三个小检测器图标（一行排列）：
+5. "Infraction Check"，橙色 #f0883e 边框；卡片内部四个小检测器图标（一行排列）：
    - Collision?（红色圆点）
    - Red Light?（红色圆点）
    - Lane Invasion?（金色圆点）
+   - Off-Road?（金色圆点）
 6. "Log Accumulation"，灰色 #30363d 边框；下方 "每路线独立记录"。
 
 画面底部居中一行小字（灰色 #8b949e 中等字号）：
@@ -215,7 +216,7 @@ Ego 平稳刹车，保持安全距离
 "DS = Route Completion × Infraction Score"
 
 公式区下方一行小字（金色 #d29922 中等字号）：
-"超时不在乘法里——超时直接判该路线为零分"
+"超时不是乘法系数——超时直接降低 Route Completion（没跑完的路段不算完成）"
 
 整体风格干净、数字按字面准确渲染（系数必须为 0.50 / 0.60 / 0.70 / 0.95，不要写成百分数）。
 
@@ -335,7 +336,7 @@ cut_in_right 这条 case 看上去 Ego 减速了
 卡片 2 "Stage 2: Joint End-to-End"（2 px 绿色 #3fb950 边框）：
 - 参数：
   - 10 epochs
-  - Batch 128
+  - Batch 128 (total, 含 gradient accumulation)
   - LR 1e-4
 - 标签 "全模块联合，梯度从规划回传感知"。
 
