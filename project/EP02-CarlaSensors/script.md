@@ -44,10 +44,11 @@
 画面右侧是分类标签三行（每行一个分类 + 子项列表），纵向排列：
 - 相机族（亮蓝色标签）：RGB / Depth / Semantic Seg / Instance Seg / DVS / Optical Flow
 - 距离传感器（绿色标签）：LiDAR / Semantic LiDAR / RADAR
-- 定位与事件（橙色标签）：GNSS / IMU / Collision / Lane Invasion
+- 定位与事件（橙色标签）：GNSS / IMU / Collision / Lane Invasion / Obstacle
 
 画面底部居中一个胶囊形提示条，深色背景 #161b22，圆角 8 px，等宽字体（monospace）：
 "统一工作流：spawn(blueprint, transform, attach_to=ego) → listen(callback)"
+提示条下方再加一行灰色小字："tick = 仿真世界的一个时间步，传感器数据按 tick 对齐"
 
 整体风格干净极简，文字按字面准确渲染。
 
@@ -56,7 +57,7 @@
 --- narration ---
 CARLA 的传感器分为三大类
 相机族种类最丰富
-从 RGB 到语义分割共六种
+包括 RGB、Depth、语义分割、实例分割、DVS 和 Optical Flow
 距离传感器包括 LiDAR 和 RADAR
 还有 GNSS、IMU 和事件检测器
 所有传感器遵循同一套工作流
@@ -86,10 +87,19 @@ CARLA 的传感器分为三大类
 右侧（占画布宽 35%）一个参数面板，深色背景 #161b22 圆角 12 px，等宽字体：
 - 顶部 "sensor.camera.rgb" 亮蓝色 #58a6ff
 - 下方四行参数（白色 #e6edf3）：
-  - image_size_x: 1600
-  - image_size_y: 900
+  - image_size_x: 960
+  - image_size_y: 540
   - fov: 70
   - sensor_tick: 0.1
+- 参数下方加两行灰色小字：
+  - attach_to: ego · transform = 相对位置 + 旋转（pitch, yaw, roll）
+  - sensor_tick=0.1 → 每 0.1 秒采一帧
+- 面板底部再加一个更小的代码区，深色背景 #0d1117，圆角 8 px，等宽字体，显示：
+  - camera_bp = blueprint_library.find('sensor.camera.rgb')
+  - camera_bp.set_attribute('image_size_x', '960')
+  - transform = carla.Transform(carla.Location(x=1.5, z=2.4), carla.Rotation(yaw=0))
+  - camera = world.spawn_actor(camera_bp, transform, attach_to=ego)
+  - camera.listen(lambda image: queue.put(image))
 
 画面底部居中一个胶囊形提示条，深色背景 #161b22 圆角 8 px，绿色 #3fb950 文字：
 "SparseDriveV2 纯视觉方案：6 个 RGB 相机 = 全部输入，无 LiDAR"
@@ -104,6 +114,9 @@ SparseDriveV2 的六个环视相机就是这个类型
 前方、前左、前右、后方、后左、后右
 六个相机完整覆盖 360 度
 可以配置分辨率、视场角和采样频率
+sensor_tick 控制采样频率
+0.1 秒一帧，避免每个仿真 tick 都采集、浪费算力
+每个相机都通过 transform 挂载到 Ego 车的相对坐标系里
 SparseDriveV2 是纯视觉方案
 六个 RGB 相机就是全部输入，不需要 LiDAR
 
@@ -120,6 +133,8 @@ CARLA 中 Ego 车前视相机 CAM_FRONT 的原始 RGB 输出，未经任何后�
 
 --- narration ---
 来看 CARLA 中前视相机 CAM_FRONT 的实际输出
+这里先以前方和左右前三路为例
+后方三个相机同样按这个流程采集
 这是 CARLA 直接渲染的原始数据
 没有经过任何后处理
 这就是 SparseDriveV2 看到的画面之一
@@ -152,7 +167,8 @@ CARLA 中 Ego 车右前相机 CAM_FRONT_RIGHT 的原始 RGB 输出。
 --- narration ---
 右前相机覆盖右侧前方
 对感知 cut-in 和右侧来车非常重要
-前左、前右与正前三个相机组成 SparseDriveV2 规划的主要视野
+前左、前右与正前三个相机是前向主要视野
+再加上后方三路，一起组成完整的 6 相机环视输入
 
 >>> 深度与语义分割相机 #B07
 @enter: fade
@@ -188,6 +204,8 @@ Depth 输出每个像素到相机的距离
 这些数据在训练阶段非常重要
 提供完美的像素级 Ground Truth
 监督感知模型的训练
+DVS 和 Optical Flow 也属于相机族
+但更偏进阶话题，本集先不展开
 
 >>> LiDAR 与 RADAR #B08
 @enter: fade-up
@@ -253,7 +271,7 @@ RADAR 用锥形区域探测，返回速度和方位角
 - 亮蓝色 #58a6ff：Obstacle Detector — 前方障碍物告警
 
 画面底部居中一个胶囊形提示条，深色背景 #161b22 圆角 8 px，绿色 #3fb950 文字：
-"事件检测器 → Bench2Drive 扣分项的直接来源"
+"事件检测器 → 碰撞 / 压线等评测事件的日志来源"
 
 整体风格干净，文字按字面准确渲染。
 
@@ -262,9 +280,11 @@ RADAR 用锥形区域探测，返回速度和方位角
 --- narration ---
 GNSS 和 IMU 提供定位和姿态信息
 可以加入噪声来模拟真实传感器的误差
-三种事件检测器在闭环评测中至关重要
-碰撞、压线、闯红灯的每次违规
-都通过它们记录并计入最终的 Driving Score
+碰撞、压线和前方障碍物
+三种事件检测器会通过回调记录
+闯红灯则由 Bench2Drive 协议层
+根据交通灯状态和车辆位置判断
+这些违规最终都会汇总进 Driving Score
 
 >>> Ground Truth：训练与推理的区别 #B10
 @enter: fade-up
@@ -336,7 +356,7 @@ GT 是训练时的老师
 
 阶段 4（最右）：一个矩形大卡片 "SparseDriveV2 Model"，圆角 12 px、深色背景 #161b22、2 px 绿色 #3fb950 边框。内部一行 "Forward Pass → Trajectory"，下方灰色小字 "唯一的传感器输入"。
 
-四个阶段之间各有一个右指箭头 + 上方小字标签：tick → 同步 → stack & normalize
+四个阶段之间各有一个右指箭头 + 上方小字标签：采集对齐 → 同步 → stack & normalize
 
 画面底部居中一行亮蓝色 #58a6ff 中等字号粗体：
 "纯视觉端到端：6 个 RGB 图像进，1 条轨迹出"
