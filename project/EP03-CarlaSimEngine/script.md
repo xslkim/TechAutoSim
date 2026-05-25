@@ -56,7 +56,7 @@ CARLA 的同步模式和 Python API
   - 固定时间步，完全确定性
 
 画面底部居中一个亮蓝色 #58a6ff 实心胶囊横幅，圆角 8 px、深色 #0d1117 粗体文字：
-"研究实验 + 算法训练 → 同步模式是唯一选择"
+"闭环评测 + 可复现实验 → 同步模式是唯一选择"
 
 整体风格干净、对比鲜明、文字清晰。
 
@@ -66,12 +66,11 @@ CARLA 的同步模式和 Python API
 CARLA 有两种运行模式
 异步模式下 Server 全速运行
 Client 随时读取
-时间步不固定，每次跑都可能不同
-同步模式才是做研究的正确选择
-Client 每调用一次 tick
+适合不要求严格对齐的快速采集
+同步模式下 Client 每调用一次 tick
 Server 才走一步
 固定时间步，整个仿真完全确定性可复现
-算法训练和 Bench2Drive 评测都必须用同步模式
+闭环评测和可复现实验必须用同步模式
 
 >>> 固定时间步 #B03
 @enter: fade
@@ -99,7 +98,7 @@ world.apply_settings(settings)
 
 上半部一条水平时间轴：横线 #30363d，线上每 0.05 s 一个亮蓝色 #58a6ff 小圆点，共约 10 个圆点，下方一行 "20 ticks / 秒"。
 
-下半部一个大方块代表一个 tick（宽约画布 35%），内部用 4 条灰色虚线分成 5 个子步（sub-step），下方一行小字 "物理子步 ≥ 60Hz → 每子步 ≤ 0.01666 s"，灰色 #8b949e 中等字号。
+下半部一个大方块代表一个 tick（宽约画布 35%），内部用 4 条灰色虚线分成 5 个子步（sub-step），下方一行小字 "物理子步 ≥ 60Hz → 每子步 ≤ 0.01666 s（碰撞 / 动力学数值稳定性要求）"，灰色 #8b949e 中等字号。
 
 整体风格干净、代码语法准确、文字按字面渲染。
 
@@ -131,7 +130,7 @@ fixed_delta_seconds 设为 0.05 秒
 - 中部一张俯视示意：一段双向道路上散布若干 NPC 车辆，每辆车前方有一条小箭头表示路径（柔和、统一速度），代表"自由车流"。
 - 下方要点列表（白色 #e6edf3，行间距充足）：
   - 运行在 Client 端，循环式控制
-  - 五阶段流水线：ALSM → 定位 → 碰撞检测 → 红绿灯 → PID 控制
+  - 五阶段流水线：定位 → 路径规划 → 碰撞检测 → 红绿灯判断 → PID 控制
   - 决策：跟车距离 / 超速比例 / 闯红灯概率 / 自动变道
   - 适用：背景车流、非考试 NPC
 
@@ -152,7 +151,7 @@ fixed_delta_seconds 设为 0.05 秒
 CARLA 里 NPC 的行为分两个层次
 **Traffic Manager** 运行在 Client 端
 负责常态背景车流
-五阶段流水线：扫描世界 → 规划路径 → 碰撞检测 → 红绿灯 → PID 控制
+五阶段流水线：定位 → 路径规划 → 碰撞检测 → 红绿灯判断 → PID 控制
 你能配跟车距离、超速比例、闯红灯概率
 **ScenarioRunner** 用 py_trees 行为树
 精确编排考试场景
@@ -170,8 +169,8 @@ Bench2Drive 的 44 种交互场景就是这层驱动
 
 CARLA 中 ScenarioRunner 行为树驱动的 Cut-In 场景鸟瞰画面。
 Ego 车（蓝色）在右车道匀速行驶，NPC 车辆（红色）从左侧车道追上后切入 Ego 前方。
-NPC 行为由 Bench2Drive CutInFrom_left_Lane.xml 的行为树驱动
-（WaypointFollower + ChangeActorTargetSpeed 原子动作）。
+NPC 行为由 Cut-In 行为树驱动
+核心原子动作包括 WaypointFollower + ChangeActorTargetSpeed。
 
 --- narration ---
 来看一个 ScenarioRunner 行为树驱动的实际场景
@@ -231,20 +230,20 @@ Traffic Manager 可以全局设定
 @visual: image
 
 --- visual ---
-一张 16:9 横构图的六宫格天气预设图，扁平化插画风格。深色背景 #0d1117。
+一张 16:9 横构图的六宫格天气与光照效果图，扁平化插画风格。深色背景 #0d1117。
 
 顶部居中标题 "天气与光照系统"，白色 #e6edf3 粗体大字。
 
 画面中央是一个 2×3 网格，总宽占画布 80%，每格圆角 12 px、间距适中。每格是一个抽象化的天气场景小插画（一条简化的道路 + 车 + 天空，用色调和元素体现天气）：
 
 - 卡片 1 "ClearNoon"：明亮蓝天 #1a3a5c → #2d5a8e 渐变色调，干燥路面。
-- 卡片 2 "HardRain"：暗灰天空 #1a2332，斜向雨线纹理覆盖。
-- 卡片 3 "ClearNight"：深蓝近黑天空 #0a0e14，路灯亮点。
-- 卡片 4 "Foggy"：均匀灰色 #3a3a3a 覆盖，远景被雾隐去。
+- 卡片 2 "CloudyNoon"：灰蓝天空 #263545，云层覆盖，路面干燥。
+- 卡片 3 "WetNoon"：阴天湿路面，路面有镜面反光。
+- 卡片 4 "HardRainNoon"：暗灰天空 #1a2332，斜向雨线纹理覆盖。
 - 卡片 5 "ClearSunset"：橙红渐变 #4a2020 → #8a4020，长投影。
-- 卡片 6 "DustStorm"：沙黄色 #5a4a30，弥漫颗粒。
+- 卡片 6 "Custom Fog"：均匀灰色 #3a3a3a 覆盖，远景被雾隐去，标注 "fog_density / fog_distance"。
 
-每张卡片底部一行白色 #e6edf3 中等字号粗体写预设名称。
+每张卡片底部一行白色 #e6edf3 中等字号粗体写预设或效果名称。
 
 网格下方居中一个胶囊形提示条，深色背景 #161b22 圆角 8 px，金色 #d29922 文字：
 "天气仅影响视觉和传感器数据 — 不影响车辆物理（无打滑效果）"
@@ -255,7 +254,9 @@ Traffic Manager 可以全局设定
 画面风格参考：类似 Notion / Linear 文档中的扁平化技术插图，深色主题、低饱和配色。画面干净、无噪点、无照片级写实纹理、无阴影、无渐变背景。所有中文文字必须准确渲染，不得出现乱码、缺笔或方块。文字与背景对比度 ≥ 4.5:1，确保在 1920×1080 视频帧中清晰可读。重要内容集中在画面中央 80% 安全区内。无任何 3D 写实渲染、无照片、无光晕特效。
 --- narration ---
 CARLA 内置多种天气预设
-覆盖晴雨雾夜沙尘暴
+覆盖晴天、阴天、湿路面、雨天和黄昏
+雾效这类效果
+可以通过 fog_density、fog_distance 等参数自定义
 天气参数可以实时通过 API 调整
 重要细节
 天气变化只影响视觉和传感器
@@ -334,7 +335,7 @@ ego = world.spawn_actor(ego_bp, spawn)
 - 顺时针 2 点位置 "Sensor Callback"，2 px 绿色 #3fb950 边框；下方小字 "6 相机 + 其他传感器采集数据"。
 - 5 点位置 "Data Align & Queue"，2 px 橙色 #f0883e 边框；下方小字 "同一 frame_id 对齐 · 按帧组织"。
 - 7 点位置 "Model Inference"，2 px 紫色 #a371f7 边框；下方小字 "SparseDriveV2 Forward · 感知 → 规划 → 轨迹"。
-- 10 点位置 "apply_control()"，2 px 金色 #d29922 边框；下方小字 "VehicleControl(throttle, steer, brake)"。
+- 10 点位置 "apply_control()"，2 px 金色 #d29922 边框；下方小字 "VehicleControl(throttle, steer, brake) · Pure Pursuit 轨迹跟踪"。
 
 节点之间用顺时针弧形细线连接，每段弧线中央有一个右指（沿弧切线方向）的小箭头。
 
@@ -371,7 +372,7 @@ tick 间隔 50 毫秒
 （本块使用本地视频 ./assets/cutin_chase.mp4，无需生成图片）
 
 SparseDriveV2 闭环控制下的 Cut-In 场景，第三人称跟车视角。
-每一帧：world.tick() → 6 相机采集 → SparseDriveV2 推理 → Pure Pursuit 控制 → ego 执行。
+每一帧：world.tick() → 6 相机采集 → SparseDriveV2 推理 → Pure Pursuit 轨迹跟踪 → ego 执行。
 画面中 NPC（红色）从左侧切入，ego（蓝色）检测到后主动减速让行。
 
 --- narration ---
@@ -380,12 +381,13 @@ SparseDriveV2 闭环控制下的 Cut-In 场景，第三人称跟车视角。
 左侧红色车切入时
 Ego 的 SparseDriveV2 检测到它
 输出减速轨迹
-Pure Pursuit 执行刹车
+Pure Pursuit 轨迹跟踪控制器
+把这条轨迹转成刹车控制
 整个过程在每帧的 50 ms tick 间隔内完成
 到这一集我们有了世界、传感器和控制循环
 下一集开始
-我们要进到循环里最关键的那一步
-Model Inference 到底在做什么
+我们要先理解端到端的范式选择
+为什么是 Sparse 这条路线
 
 >>> 本集总结 #B11
 @enter: fade-up
