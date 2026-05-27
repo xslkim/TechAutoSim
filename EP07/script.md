@@ -544,7 +544,7 @@ brake 平滑拉到 1.0
 一张 16:9 横构图的流水线图，扁平化技术风格。深色背景 #0d1117。
 
 顶部居中标题 "Stream B：基础设施收口" 字号 76px 白色 #e6edf3 粗体。
-副标题 "43 秒端到端冒烟 · 改动同步进文档" 字号 36px 亮蓝色 #58a6ff。
+副标题 "43 秒端到端冒烟 · epic_v3 成为默认基线" 字号 36px 亮蓝色 #58a6ff。
 
 画面中央上半部（占高 50%）是 4 步流水线（总宽占画布 92%、横向连接、每步圆角 12px、深色背景 #161b22 2px 不同色边框、内边距 24px）：
 
@@ -568,19 +568,19 @@ brake 平滑拉到 1.0
 
 下半部（占高 45%）是文档同步示意图：
 
-左半 "改动文件 (4 个)"（深色背景 #161b22 圆角 12px、内边距 24px、宽 42%、等宽字体）：
+左半 "文档与基线收口"（深色背景 #161b22 圆角 12px、内边距 24px、宽 42%、等宽字体）：
 - README.md  ← 加 Milestone 1+ 状态行
 - docs/milestone_1_plan.md  ← 追加 §14
-- docs/milestone_1_report.md  ← 追加 epic_v2 段
+- docs/milestone_1_report.md  ← 追加 epic_v3 段
 - .github/workflows/smoke.yml  ← pytest + ruff
 
 中间一个右指箭头（亮蓝色 #58a6ff 字号 64px）。
 
 右半 "成果"（亮蓝色 #58a6ff 边框、深色背景 #161b22 圆角 12px、内边距 24px、宽 42%）：
-- 4 文件全部命中 "epic_v2"（字号 30px 白色 #e6edf3）
-- 24 个内部链接 23 个有效（字号 26px 灰色 #8b949e）
-- 1700+ 字中文新增（字号 26px 灰色）
-- 没人在改代码（字号 28px 绿色粗体 "✓ 与 Stream A 解耦"）
+- epic_v3 成为 README 默认验收基线（字号 30px 白色 #e6edf3）
+- verify_report.json 归档到 work_state（字号 26px 灰色 #8b949e）
+- 批跑产物写进 .gitignore（字号 26px 灰色）
+- 与 Stream A 解耦完成（字号 28px 绿色粗体 "✓ 无代码冲突"）
 
 整体风格干净、流水线清晰、数字按字面准确渲染。
 
@@ -599,8 +599,8 @@ dummy 闭环 26 秒
 此外文档也同步更新
 README 状态行
 plan 加章节
-report 追加 epic_v2 段
-**4 个文件、1700 字、零代码冲突**
+report 追加 epic_v3 段
+**基线归档、产物忽略、零代码冲突**
 和 Stream A 完全解耦
 
 >>> 收尾：今晚的成绩单 #B14
@@ -650,7 +650,7 @@ report 追加 epic_v2 段
   • 多算法横评
   • 中国 case 库扩展
 
-底部一行字号 32px 灰色 #8b949e "61 passed · 14 文件改动 · 全部留 working tree 由人审"。
+底部一行字号 32px 灰色 #8b949e "61 passed · 2 个 commit · origin/main 已同步"。
 
 整体风格干净、收尾感强、绿色高亮 9 PASS 主体。
 
@@ -661,8 +661,8 @@ report 追加 epic_v2 段
 **epic_v3：9 通过、0 警告、1 失败**
 比昨天多一条 PASS
 SCN 清零
-代码层面 14 个文件改动
-全部留在 working tree 由人审
+代码和文档分成两个 commit 落地
+最后已经同步到 origin/main
 我自己的角色
 是定义 4 个任务的验收标准
 然后让两个 Cursor Agent 并发把它跑完

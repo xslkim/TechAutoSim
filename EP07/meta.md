@@ -4,5 +4,5 @@ aspect: 16:9
 theme: dark-code
 fps: 30
 slug: scenario-quality-9pass
-voiceRef: ../../B00.wav
+voiceRef: ../B00.wav
 ---
